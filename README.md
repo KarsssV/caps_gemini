@@ -1,6 +1,7 @@
 # CAPS08
 ## Head Counting System pada Area Titik Kumpul
 ### Struktur repo
+```text
 my-project/
 ├── apps/
 │   │
@@ -41,3 +42,4 @@ my-project/
 │
 ├── docker-compose.yml             # Orkestrasi seluruh layanan (termasuk config GPU nvidia)
 └── README.md                      # Dokumentasi cara setup, install, dan run project
+```
