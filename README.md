@@ -1,45 +1,43 @@
 # CAPS08
 ## Head Counting System pada Area Titik Kumpul
-### Struktur repo
+### Contoh truktur repo
 ```text
-my-project/
-├── apps/
-│   │
-│   ├── frontend/                  # Next.js (Dikelola oleh Tim FE/UI)
-│   │   ├── src/
-│   │   │   ├── app/               # Next.js App Router
-│   │   │   │   ├── (auth)/login/  # Halaman Login & form
-│   │   │   │   ├── dashboard/     # Main Monitoring Dashboard (Real-Time UI)
-│   │   │   │   ├── personnel/     # Personnel Status List & Missing Persons
-│   │   │   │   └── settings/      # Notification & Email Settings
-│   │   │   ├── components/        # UI Reusable (Grafik, Tabel, Tombol Manual Override, Badge Merah/Hijau)
-│   │   │   └── lib/               # Integrasi API (HTTP fetch) & klien WebSocket
-│   │   └── package.json
-│   │
-│   ├── backend-ai/                # FastAPI & Model ML (Tim AI/ML & AI Backend)
-│   │   ├── api/                   # (AI Backend Eng.) Endpoint FastAPI & Webhook payload format
-│   │   ├── core/                  # (Engineer C) Logika bridging pipeline & TensorRT/CUDA optimizers
-│   │   ├── models/
-│   │   │   ├── detection/         # (Engineer A) RF DETR model & Tracking algorithm logic
-│   │   │   └── recognition/       # (Engineer B) Face Recognition model (ArcFace/DeepFace)
-│   │   ├── streams/               # (AI Backend Eng.) RTSP/Webcam frame extractor
-│   │   ├── utils/                 # Config & hardcoded variables (misal: assembly_point_id = 1)
-│   │   ├── main.py                # Entry point Uvicorn
-│   │   └── requirements.txt
-│   │
-│   └── backend-core/              # Golang (Backend Core Engineer)
-│       ├── cmd/
-│       │   └── api/               # Entry point server Golang
-│       ├── internal/
-│       │   ├── handlers/          # REST API endpoints (Auth, Manual Override) & WebSocket controller
-│       │   ├── models/            # Skema Database (users, personnel, assembly_points, attendance_logs)
-│       │   ├── repository/        # Query database langsung ke PostgreSQL/MySQL
-│       │   ├── services/          # Business logic utama (Auth, pengolahan data status)
-│       │   └── workers/           # Background jobs & Scheduler (Timer Notifikasi 10 menit & Email sender)
-│       ├── pkg/                   # Fungsi bantuan (konfigurasi email templates)
-│       ├── go.mod
-│       └── go.sum
+petro-headcount/
+├── core-backend/           # Golang (Gudang Data & API Utama)
+│   ├── cmd/api/            # Entry point aplikasi (main.go)
+│   ├── internal/           
+│   │   ├── handler/        # Logika HTTP (Controller)
+│   │   ├── service/        # Business logic
+│   │   ├── repository/     # Query ke Database (GORM)
+│   │   ├── model/          # Struct tabel DB (User, Source, Log)
+│   │   └── middleware/     # Auth JWT & CORS
+│   ├── pkg/                # Helper (db connection, logger)
+│   ├── storage/            # Folder lokal untuk simpan file
+│   │   └── snapshots/      # Hasil capture AI tiap 5 menit
+│   ├── .env                # Konfigurasi DB & Port
+│   └── go.mod
 │
-├── docker-compose.yml             # Orkestrasi seluruh layanan (termasuk config GPU nvidia)
-└── README.md                      # Dokumentasi cara setup, install, dan run project
+├── ai-engine/              # FastAPI (Otak AI)
+│   ├── app/
+│   │   ├── api/            # Endpoint FastAPI
+│   │   ├── core/           # Config (load model .pt/.pth)
+│   │   ├── processor/      # Logika deteksi YOLO & RT-DETR
+│   │   └── utils/          # Helper (image processing, timer)
+│   ├── models/             # Tempat file .pt dan .pth
+│   ├── test_videos/        # Folder video lokal untuk testing
+│   ├── main.py             # Entry point FastAPI
+│   └── requirements.txt    # Library (torch, ultralytics, opencv)
+│
+├── web-frontend/           # Next.js (Wajah Aplikasi)
+│   ├── public/             # Asset statis (Logo Petrokimia)
+│   ├── src/
+│   │   ├── app/            # Next.js App Router (Pages)
+│   │   ├── components/     # UI Components (Sidebar, Table, Modal)
+│   │   ├── services/       # API Fetcher (Axios/Fetch ke Golang)
+│   │   ├── hooks/          # Custom logic (useLiveView, etc.)
+│   │   └── lib/            # Utility functions (format date, etc.)
+│   ├── tailwind.config.js
+│   └── package.json
+│
+└── README.md               # Dokumentasi cara jalankan project
 ```
