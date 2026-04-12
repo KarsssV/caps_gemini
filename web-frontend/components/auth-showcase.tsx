@@ -1,33 +1,84 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from '../contexts/auth-context';
 
 type AuthShowcaseProps = {
   variant: "signup" | "login";
 };
 
 type FieldConfig = {
+  name: string,
   label: string;
+  required: boolean,
   type?: string;
   fullWidth?: boolean;
   hasIcon?: boolean;
+  validate?: (value: string, allValues: FormData) => string | null;
 };
 
 const signupFields: FieldConfig[] = [
-  { label: "First name" },
-  { label: "Last name" },
-  { label: "Email", type: "email", fullWidth: true },
-  { label: "Username", fullWidth: true },
-  { label: "Enter password", type: "password", fullWidth: true, hasIcon: true },
-  { label: "Confirm password", type: "password", fullWidth: true, hasIcon: true },
+  { 
+    name: "first_name",
+    required: true,
+    label: "First name"
+  },
+  {
+    name: "last_name",
+    required: true,
+    label: "Last name"
+  },
+  {
+    name: "email",
+    required: true,
+    label: "Email",
+    type: "email",
+    fullWidth: true,
+    validate: (val) => (!val.includes("@") ? "Invalid email address" : null)
+  },
+  {
+    name: "username",
+    required: true,
+    label: "Username",
+    fullWidth: true
+  },
+  {
+    name: "password",
+    required: true,
+    label: "Enter password",
+    type: "password",
+    fullWidth: true,
+    hasIcon: true,
+    validate: (val) => (val.length < 8 ? "Password must be at least 8 characters" : null)
+  },
+  {
+    name: "confirm_password",
+    required: true,
+    label: "Confirm password",
+    type: "password",
+    fullWidth: true,
+    hasIcon: true,
+    validate: (val, all) => (val !== all.password ? "Passwords do not match" : null)
+  },
 ];
 
 const loginFields: FieldConfig[] = [
-  { label: "Email or username", fullWidth: true },
-  { label: "Password", type: "password", fullWidth: true, hasIcon: true },
+  {
+    name: "email_username",
+    required: true,
+    label: "Email or username",
+    fullWidth: true
+  },
+  {
+    name: "password",
+    required: true,
+    label: "Password",
+    type: "password",
+    fullWidth: true,
+    hasIcon: true,
+    validate: (val) => (val.length < 8 ? "Password must be at least 8 characters" : null)
+  },
 ];
 
 const campusImages = ["/kantor.svg", "/agro-center.svg"] as const;
@@ -52,21 +103,23 @@ function EyeIcon() {
   );
 }
 
-function AuthInput({ label, type = "text", fullWidth, hasIcon }: FieldConfig) {
-  return (
-    <label className={fullWidth ? "col-span-2" : "col-span-1"}>
-      <span className="sr-only">{label}</span>
-      <div className="flex h-13 items-center rounded-md border border-emerald-950/40 bg-[#0f4b2b]/80 px-4 text-white/65 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition focus-within:border-emerald-300/60 focus-within:text-white">
-        <input
-          type={type}
-          placeholder={label}
-          className="w-full bg-transparent text-lg outline-none placeholder:text-white/28"
-        />
-        {hasIcon ? <span className="ml-3 text-white/28"><EyeIcon /></span> : null}
-      </div>
-    </label>
-  );
-}
+// function AuthInput({ name, label, required, type = "text", fullWidth, hasIcon }: FieldConfig) {
+//   return (
+//     <label className={fullWidth ? "col-span-2" : "col-span-1"}>
+//       <span className="sr-only">{label}</span>
+//       <div className="flex h-13 items-center rounded-md border border-emerald-950/40 bg-[#0f4b2b]/80 px-4 text-white/65 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition focus-within:border-emerald-300/60 focus-within:text-white">
+//         <input
+//           name={name}
+//           type={type}
+//           placeholder={label}
+//           className="w-full bg-transparent text-lg outline-none placeholder:text-white/28"
+//           required={required}
+//         />
+//         {hasIcon ? <span className="ml-3 text-white/28"><EyeIcon /></span> : null}
+//       </div>
+//     </label>
+//   );
+// }
 
 function CampusArtwork({ imageSrc, fading }: { imageSrc: string; fading: boolean }) {
   return (
@@ -105,6 +158,10 @@ function CampusArtwork({ imageSrc, fading }: { imageSrc: string; fading: boolean
   );
 }
 
+interface FormData {
+  [name: string]: string; // Index signature allows dynamic names
+}
+
 export default function AuthShowcase({ variant }: AuthShowcaseProps) {
   const router = useRouter();
   const isSignup = variant === "signup";
@@ -112,16 +169,77 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
   const [imageIndex, setImageIndex] = useState(0);
   const [isFading, setIsFading] = useState(false);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const [formData, setFormData] = useState<FormData>({});
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const {login, register } = useAuth();
 
-    if (isSignup) {
-      router.push("/login");
-      return;
+  type FormErrors = Record<string, string | null>;
+
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };  
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+    let isValid = true;
+
+    fields.forEach((field) => {
+      if (field.validate) {
+        const value = formData[field.name] || "";
+        const error = field.validate(value, formData);
+        
+        if (error) {
+          console.log(field.name + " " + error)
+          newErrors[field.name] = error;
+          isValid = false;
+        }
+      }
+    });
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    if (validateForm()) {
+      console.log("Form is valid! Sending to API...", formData);
+      if (isSignup) { 
+        try {
+          await register(formData.first_name, formData.last_name, formData.email, formData.username, formData.password);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Registration failed');
+          return;
+        } finally {
+          setLoading(false);
+          router.push("/login");
+        }
+      } else {
+        try {
+          await login(formData.email_username, formData.password);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Login failed');
+          return;
+        } finally {
+          setLoading(false);
+          router.push("/");
+        }
+      }
+    } else {
+      setError("Form has errors. Fix them, please.");
     }
-
-    router.push("/");
-  }
+  };
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -170,10 +288,35 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
                 </Link>
               </p>
 
+              {error && (
+                <div className="alert alert-danger" role="alert">
+                  {error}
+                </div>
+              )}
+
               <form className="mt-10 space-y-6" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {fields.map((field) => (
-                    <AuthInput key={field.label} {...field} />
+                    <label key={field.name} className={field.fullWidth ? "col-span-2" : "col-span-1"}>
+                      <span className="sr-only">{field.label}</span>
+                      <div className="flex h-13 items-center rounded-md border border-emerald-950/40 bg-[#0f4b2b]/80 px-4 text-white/65 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition focus-within:border-emerald-300/60 focus-within:text-white">
+                        <input
+                          name={field.name}
+                          type={field.type}
+                          placeholder={field.label}
+                          className="w-full bg-transparent text-lg outline-none placeholder:text-white/28"
+                          value={formData[field.name] || ""}
+                          onChange={handleChange}
+                          required={field.required}
+                        />
+                        {field.hasIcon ? <span className="ml-3 text-white/28"><EyeIcon /></span> : null}
+                      </div>
+                      {errors[field.name] && (
+                        <span style={{ color: 'red', fontSize: '12px' }}>
+                          {errors[field.name]}
+                        </span>
+                      )}
+                    </label>
                   ))}
                 </div>
 

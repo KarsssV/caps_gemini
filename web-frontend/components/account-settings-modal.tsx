@@ -1,4 +1,4 @@
-"use client";
+import { useAuth } from "../contexts/auth-context";
 
 type AccountSettingsModalProps = {
   isOpen: boolean;
@@ -6,6 +6,7 @@ type AccountSettingsModalProps = {
 };
 
 export default function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalProps) {
+  const { user, logout } = useAuth();
   if (!isOpen) {
     return null;
   }
@@ -29,8 +30,8 @@ export default function AccountSettingsModal({ isOpen, onClose }: AccountSetting
         <div className="mx-auto h-18 w-18 rounded-full bg-white/25" />
 
         <div className="mt-3 text-center">
-          <p className="text-base font-semibold tracking-wide">USERNAME</p>
-          <p className="text-sm text-white/80">email@gmail.com</p>
+          <p className="text-base font-semibold tracking-wide">{user?.username}</p>
+          <p className="text-sm text-white/80">{user?.email}</p>
         </div>
 
         <div className="mt-3 space-y-2">
@@ -43,6 +44,7 @@ export default function AccountSettingsModal({ isOpen, onClose }: AccountSetting
           <button
             type="button"
             className="h-8 w-full rounded-md border border-white/20 bg-white/20 text-sm font-medium text-white transition hover:bg-white/30"
+            onClick={logout}
           >
             Logout
           </button>
