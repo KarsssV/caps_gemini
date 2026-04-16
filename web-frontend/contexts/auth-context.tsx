@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 interface User {
+  id: string;
   email: string;
   username: string;
 }
@@ -56,7 +57,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     setToken(data.token);
     setUser(data.user);
-    console.log(user)
 
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
@@ -71,7 +71,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       body: JSON.stringify({first_name, last_name, email, username, password}),
     });
 
-    console.log(response)
     if (!response.ok) {
       const error = await response.text();
       throw new Error(error || 'Registration failed');

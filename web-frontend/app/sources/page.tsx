@@ -1,50 +1,88 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import AppShell from "../../components/app-shell";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../contexts/auth-context";
 
-type SourceType = "CCTV" | "YouTube" | "File";
+type SourceType = "MP4" | "RTSP" | "Webcam" | "Youtube" | "Other";
 
 type SourceItem = {
-  id: number;
+  id: string;
   name: string;
   type: SourceType;
   url: string;
   frameRate: string;
   resolution: string;
-  status: "Active" | "Offline";
+  status: boolean;
 };
 
-const initialSources: SourceItem[] = [
-  {
-    id: 1,
-    name: "Gate Utama",
-    type: "CCTV",
-    url: "rtsp://10.1.0.10/live",
-    frameRate: "30 FPS",
-    resolution: "1920x1080",
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Warehouse North",
-    type: "CCTV",
-    url: "rtsp://10.1.0.11/live",
-    frameRate: "24 FPS",
-    resolution: "1280x720",
-    status: "Active",
-  },
-];
+// const initialSources: SourceItem[] = [
+//   {
+//     id: 1,
+//     name: "Gate Utama",
+//     type: "RTSP",
+//     url: "rtsp://10.1.0.10/live",
+//     frameRate: "30 FPS",
+//     resolution: "1920x1080",
+//     status: true,
+//   },
+//   {
+//     id: 2,
+//     name: "Warehouse North",
+//     type: "RTSP",
+//     url: "rtsp://10.1.0.11/live",
+//     frameRate: "24 FPS",
+//     resolution: "1280x720",
+//     status: false,
+//   },
+// ];
 
 export default function SourcesPage() {
-  const [sources, setSources] = useState<SourceItem[]>(initialSources);
+  const [sources, setSources] = useState<SourceItem[]>();
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
   const [name, setName] = useState("");
-  const [type, setType] = useState<SourceType>("CCTV");
+  const [type, setType] = useState<SourceType>("RTSP");
   const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(true);
+  const {user, token} = useAuth();
+  const [err, setError] = useState("");
+
+  async function fetchSources() {
+    try {
+      const response = await fetch(`http://localhost:8080/api/sources`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const sourcesData = await response.json();
+        setSources(sourcesData.sources);
+      } else {
+        router.push("/");
+      }
+    } catch (error) {
+      router.push("/");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    
+    fetchSources();
+  }, [token, router]);
 
   const filteredSources = useMemo(() => {
+    if (!Array.isArray(sources)) {
+      return []; 
+    }
     const query = searchQuery.trim().toLowerCase();
     if (!query) {
       return sources;
@@ -61,31 +99,88 @@ export default function SourcesPage() {
 
   function resetForm() {
     setName("");
-    setType("CCTV");
+    setType("RTSP");
     setUrl("");
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const nextId = sources.length ? Math.max(...sources.map((item) => item.id)) + 1 : 1;
+    try {
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      const userId = user?.id
+      
+      const response = await fetch('http://localhost:8080/api/sources', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({name, type, url, user_id: userId}),
+      });
 
-    setSources((currentSources) => [
-      ...currentSources,
-      {
-        id: nextId,
-        name: name.trim(),
-        type,
-        url: url.trim(),
-        frameRate: type === "File" ? "25 FPS" : "30 FPS",
-        resolution: type === "YouTube" ? "1280x720" : "1920x1080",
-        status: "Active",
-      },
-    ]);
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || 'Source registration failed');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed');
+      return;
+    } finally {
+      setLoading(false);
+    }
+    // const nextId = sources.length ? Math.max(...sources.map((item) => item.id)) + 1 : 1;
+
+    // setSources((currentSources) => [
+    //   ...currentSources,
+    //   {
+    //     id: nextId,
+    //     name: name.trim(),
+    //     type,
+    //     url: url.trim(),
+    //     frameRate: type === "MP4" ? "25 FPS" : "30 FPS",
+    //     resolution: type === "Youtube" ? "1280x720" : "1920x1080",
+    //     status: "Active",
+    //     userId: user?.id
+    //   },
+    // ]);
 
     setIsModalOpen(false);
     resetForm();
+    fetchSources();
   }
+
+  async function handleDelete(sourceId: string) {
+    if (!token || !user) {
+      router.push("/login");
+      return;
+    }
+    
+    const userId = user?.id
+    try{
+      const response = await fetch(`http://localhost:8080/api/sources/${sourceId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({user_id: userId})
+      });
+
+      if (response.ok) {
+        fetchSources();
+      } else if (response.status === 401) {
+        alert("Please login to delete tasks");
+        router.push("/login");
+      } else {
+        alert("Error deleting task");
+      }
+    } catch (error) {
+      alert("Error deleting task");
+    }
+  };
 
   return (
     <AppShell title="Sources" variant="dashboard">
@@ -142,10 +237,10 @@ export default function SourcesPage() {
                       <td className="border border-[#2f8e4c]/40 px-3 py-3">
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                            source.status === "Active" ? "bg-lime-500 text-white" : "bg-red-500 text-white"
+                            source.status === true ? "bg-lime-500 text-white" : "bg-red-500 text-white"
                           }`}
                         >
-                          {source.status}
+                          {source.status === true ? "Active" : "Offline"}
                         </span>
                       </td>
                       <td className="border border-[#2f8e4c]/40 px-3 py-3">
@@ -156,7 +251,7 @@ export default function SourcesPage() {
                           <button type="button" className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10">
                             Edit
                           </button>
-                          <button type="button" className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10">
+                          <button type="button" onClick={() => handleDelete(source.id)} className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10">
                             Delete
                           </button>
                         </div>
@@ -195,9 +290,10 @@ export default function SourcesPage() {
                   onChange={(event) => setType(event.target.value as SourceType)}
                   className="mt-1 h-10 w-full rounded-sm border border-white/30 bg-[#0f4b2b]/60 px-3 text-white outline-none focus:border-[#e2c15d] focus:bg-[#0f4b2b]/80"
                 >
-                  <option value="CCTV">CCTV</option>
-                  <option value="YouTube">YouTube</option>
-                  <option value="File">File</option>
+                  <option value="RTSP">RTSP</option>
+                  <option value="Webcam">Webcam</option>
+                  <option value="Youtube">Youtube</option>
+                  <option value="MP4">MP4</option>
                 </select>
               </label>
 
@@ -208,7 +304,7 @@ export default function SourcesPage() {
                   type="text"
                   value={url}
                   onChange={(event) => setUrl(event.target.value)}
-                  placeholder="rtsp://... / https://... / C:/video.mp4"
+                  placeholder="rtsp://... / https://... /"
                   className="mt-1 h-10 w-full rounded-sm border border-white/30 bg-[#0f4b2b]/60 px-3 text-white placeholder:text-white/40 outline-none focus:border-[#e2c15d] focus:bg-[#0f4b2b]/80"
                 />
               </label>
