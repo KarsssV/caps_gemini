@@ -42,6 +42,7 @@ export default function SourcesPage() {
   const [sources, setSources] = useState<SourceItem[]>();
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState("create");
   const router = useRouter();
   const [name, setName] = useState("");
   const [type, setType] = useState<SourceType>("RTSP");
@@ -49,6 +50,7 @@ export default function SourcesPage() {
   const [loading, setLoading] = useState(true);
   const {user, token} = useAuth();
   const [err, setError] = useState("");
+  const [sourceId, setSourceId] = useState("")
 
   async function fetchSources() {
     try {
@@ -101,36 +103,68 @@ export default function SourcesPage() {
     setName("");
     setType("RTSP");
     setUrl("");
+    setSourceId("");
+  }
+  
+  function setFormData(name: string, type: SourceType, url: string) {
+    setName(name);
+    setType(type);
+    setUrl(url);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    try {
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-      const userId = user?.id
-      
-      const response = await fetch('http://localhost:8080/api/sources', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({name, type, url, user_id: userId}),
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error || 'Source registration failed');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+    
+    if (!user) {
+      router.push("/login");
       return;
-    } finally {
-      setLoading(false);
+    }
+    const userId = user?.id
+
+    console.log(modalType)
+
+    if(modalType == "create"){
+      try {
+        const response = await fetch('http://localhost:8080/api/sources', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({name, type, url, user_id: userId}),
+        });
+
+        if (!response.ok) {
+          const error = await response.text();
+          throw new Error(error || 'Source registration failed');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Registration failed');
+        return;
+      } finally {
+        setLoading(false);
+      }
+    } else if(modalType == "update"){
+      try{  
+        const response = await fetch(`http://localhost:8080/api/sources/${sourceId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({name, type, url, user_id: userId}),
+        });
+
+        if (!response.ok) {
+          const error = await response.text();
+          throw new Error(error || 'Source update failed');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Update failed');
+        return;
+      } finally {
+        setLoading(false);
+      }
     }
     // const nextId = sources.length ? Math.max(...sources.map((item) => item.id)) + 1 : 1;
 
@@ -153,7 +187,7 @@ export default function SourcesPage() {
     fetchSources();
   }
 
-  async function handleDelete(sourceId: string) {
+  async function handleDelete() {
     if (!token || !user) {
       router.push("/login");
       return;
@@ -172,14 +206,15 @@ export default function SourcesPage() {
       if (response.ok) {
         fetchSources();
       } else if (response.status === 401) {
-        alert("Please login to delete tasks");
+        alert("Please login to delete sources");
         router.push("/login");
       } else {
-        alert("Error deleting task");
+        alert("Error deleting source");
       }
     } catch (error) {
-      alert("Error deleting task");
+      alert("Error deleting source");
     }
+    setSourceId("");
   };
 
   return (
@@ -199,7 +234,7 @@ export default function SourcesPage() {
 
             <button
               type="button"
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {setIsModalOpen(true); setModalType("create");}}
               className="h-10 rounded-sm border border-[#e2c15d]/60 bg-[#e2c15d]/25 px-4 text-sm font-medium text-white transition hover:bg-[#e2c15d]/40"
             >
               Add Source
@@ -248,10 +283,13 @@ export default function SourcesPage() {
                           <button type="button" className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10">
                             View
                           </button>
-                          <button type="button" className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10">
+                          <button type="button"
+                            className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10"
+                            onClick={() => {setIsModalOpen(true); setModalType("update"); setSourceId(source.id); setFormData(source.name, source.type, source.url)}}
+                          >
                             Edit
                           </button>
-                          <button type="button" onClick={() => handleDelete(source.id)} className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10">
+                          <button type="button" onClick={() => {setSourceId(source.id); handleDelete()}} className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10">
                             Delete
                           </button>
                         </div>
@@ -268,7 +306,7 @@ export default function SourcesPage() {
       {isModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-lg rounded-sm border border-[#2f8e4c]/60 bg-[#0f4b2b] p-5 shadow-[0_18px_42px_rgba(0,0,0,0.5)]">
-            <h2 className="text-xl font-semibold text-white/95">Add Source</h2>
+            <h2 className="text-xl font-semibold text-white/95">{modalType == "create" ? "Add" : "Update"} Source</h2>
 
             <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
               <label className="block text-sm text-white/85">
