@@ -12,7 +12,7 @@ type SourceItem = {
   name: string;
   type: SourceType;
   url: string;
-  frameRate: string;
+  fps_target: string;
   resolution: string;
   status: boolean;
 };
@@ -121,8 +121,6 @@ export default function SourcesPage() {
     }
     const userId = user?.id
 
-    console.log(modalType)
-
     if(modalType == "create"){
       try {
         const response = await fetch('http://localhost:8080/api/sources', {
@@ -187,7 +185,7 @@ export default function SourcesPage() {
     fetchSources();
   }
 
-  async function handleDelete() {
+  async function handleDelete(sourceId: string) {
     if (!token || !user) {
       router.push("/login");
       return;
@@ -267,7 +265,7 @@ export default function SourcesPage() {
                       <td className="border border-[#2f8e4c]/40 px-2 py-3">{index + 1}</td>
                       <td className="border border-[#2f8e4c]/40 px-3 py-3">{source.name}</td>
                       <td className="border border-[#2f8e4c]/40 px-3 py-3">{source.type}</td>
-                      <td className="border border-[#2f8e4c]/40 px-3 py-3">{source.frameRate}</td>
+                      <td className="border border-[#2f8e4c]/40 px-3 py-3">{source.fps_target}</td>
                       <td className="border border-[#2f8e4c]/40 px-3 py-3">{source.resolution}</td>
                       <td className="border border-[#2f8e4c]/40 px-3 py-3">
                         <span
@@ -285,11 +283,11 @@ export default function SourcesPage() {
                           </button>
                           <button type="button"
                             className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10"
-                            onClick={() => {setIsModalOpen(true); setModalType("update"); setSourceId(source.id); setFormData(source.name, source.type, source.url)}}
+                            onClick={() => { setModalType("update"); setSourceId(source.id); setFormData(source.name, source.type, source.url); setIsModalOpen(true);}}
                           >
                             Edit
                           </button>
-                          <button type="button" onClick={() => {setSourceId(source.id); handleDelete()}} className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10">
+                          <button type="button" onClick={() => {handleDelete(source.id)}} className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10">
                             Delete
                           </button>
                         </div>
