@@ -98,11 +98,7 @@ type CreateSnapshotParams struct {
 }
 
 func (q *Queries) CreateSnapshot(ctx context.Context, arg CreateSnapshotParams) (Snapshot, error) {
-	row := q.db.QueryRow(ctx, createSnapshot,
-		arg.SourceID,
-		arg.ImagePath,
-		arg.HeadCountAtTime,
-	)
+	row := q.db.QueryRow(ctx, createSnapshot, arg.SourceID, arg.ImagePath, arg.HeadCountAtTime)
 	var i Snapshot
 	err := row.Scan(
 		&i.ID,
@@ -350,6 +346,36 @@ func (q *Queries) GetSnapshotById(ctx context.Context, id uuid.UUID) (Snapshot, 
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getSnapshots = `-- name: GetSnapshots :many
+SELECT id, source_id, image_path, head_count_at_time, created_at FROM snapshots
+`
+
+func (q *Queries) GetSnapshots(ctx context.Context) ([]Snapshot, error) {
+	rows, err := q.db.Query(ctx, getSnapshots)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Snapshot
+	for rows.Next() {
+		var i Snapshot
+		if err := rows.Scan(
+			&i.ID,
+			&i.SourceID,
+			&i.ImagePath,
+			&i.HeadCountAtTime,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getSnapshotsBySource = `-- name: GetSnapshotsBySource :many

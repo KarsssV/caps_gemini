@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -34,24 +33,34 @@ func (h *Handler) HandleAdd(c *gin.Context) {
 		return
 	}
 
+	imageDir := req.SourceID.String() + "/" + req.ImagePath
+
+	imgServeUrl := os.Getenv("BE_CORE_URL") + "/public/"
+	req.ImagePath = imgServeUrl + "snapshots/" + imageDir
+
 	snapshot, err := h.svc.Add(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	extension := filepath.Ext(file.Filename)
-	newFileName := snapshot.ID.String() + extension
-	dst := "./public/snapshots/" + snapshot.SourceID.String() + "/" + newFileName
-
+	dst := "./public/snapshots/" + imageDir
 	if err := c.SaveUploadedFile(file, dst); err != nil {
-		c.JSON(500, gin.H{"error": "Failed to save file"})
+		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
-	imgServeUrl := os.Getenv("BE_CORE_URL") + "public/snapshots/"
-	req.ImagePath = imgServeUrl + snapshot.SourceID.String() + "/" + newFileName
 	c.JSON(http.StatusCreated, snapshot)
+}
+
+func (h *Handler) HandleRequest(c *gin.Context) {
+	snapshots, err := h.svc.Request(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, SnapshotResponse{Snapshots: snapshots})
 }
 
 func (h *Handler) HandleRequestsBySource(c *gin.Context) {

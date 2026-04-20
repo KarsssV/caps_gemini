@@ -7,3 +7,7 @@ type SnapshotAdd struct {
 	ImagePath       string    `json:"image_path"`
 	HeadCountAtTime int32     `json:"head_count_at_time" binding:"required"`
 }
+
+type SnapshotResponse struct {
+	Snapshots any `json:"snapshots"`
+}

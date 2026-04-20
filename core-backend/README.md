@@ -1,5 +1,5 @@
 ## Needed Environment Variables
-| Variables    | Use                               |
+| Variables    | Usage                             |
 |--------------|-----------------------------------|
 | DATABASE_URL | Direct connection to the database |
 | JWT_SECRET   | JWT secret key                    |
@@ -13,7 +13,6 @@
 
 ### Development
 `make generate` or `sqlc generate` to generate the db files
-**_Change `uuid.uuid` to `uuid.UUID`_**
 
 ### Migrations
 `make migration name=<version name>`
