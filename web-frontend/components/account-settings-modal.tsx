@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/auth-context";
 
 type AccountSettingsModalProps = {
@@ -7,6 +8,13 @@ type AccountSettingsModalProps = {
 
 export default function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalProps) {
   const { user, logout } = useAuth();
+  const router = useRouter();
+  
+  function handleLogout(){
+    logout();
+    router.push("/login");
+  } 
+
   if (!isOpen) {
     return null;
   }
@@ -44,7 +52,7 @@ export default function AccountSettingsModal({ isOpen, onClose }: AccountSetting
           <button
             type="button"
             className="h-8 w-full rounded-md border border-white/20 bg-white/20 text-sm font-medium text-white transition hover:bg-white/30"
-            onClick={logout}
+            onClick={handleLogout}
           >
             Logout
           </button>
