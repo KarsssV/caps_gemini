@@ -1,5 +1,9 @@
-import AuthShowcase from "@/components/auth-showcase";
+"use client"
+import AuthShowcase from "../../components/auth-showcase";
+import { AuthProvider } from "../../contexts/auth-context";
 
 export default function LoginPage() {
-  return <AuthShowcase variant="login" />;
+  return (
+    <AuthShowcase variant="login" />
+  );
 }
