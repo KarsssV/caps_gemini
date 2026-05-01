@@ -11,8 +11,8 @@ export default function AccountSettingsModal({ isOpen, onClose }: AccountSetting
   const router = useRouter();
   
   function handleLogout(){
-    logout();
     router.push("/login");
+    logout();
   } 
 
   if (!isOpen) {

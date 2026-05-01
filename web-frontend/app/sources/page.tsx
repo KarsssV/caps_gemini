@@ -4,42 +4,27 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import AppShell from "../../components/app-shell";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/auth-context";
+import {
+  type SourceItem,
+  type SourceType,
+  readSourcesFromStorage,
+  writeSourcesToStorage,
+} from "../../lib/sources";
 
-type SourceType = "MP4" | "RTSP" | "Webcam" | "Youtube" | "Other";
+// type SourceType = "MP4" | "RTSP" | "Webcam" | "Youtube" | "Other";
 
-type SourceItem = {
-  id: string;
-  name: string;
-  type: SourceType;
-  url: string;
-  fps_target: string;
-  resolution: string;
-  status: boolean;
-};
-
-// const initialSources: SourceItem[] = [
-//   {
-//     id: 1,
-//     name: "Gate Utama",
-//     type: "RTSP",
-//     url: "rtsp://10.1.0.10/live",
-//     frameRate: "30 FPS",
-//     resolution: "1920x1080",
-//     status: true,
-//   },
-//   {
-//     id: 2,
-//     name: "Warehouse North",
-//     type: "RTSP",
-//     url: "rtsp://10.1.0.11/live",
-//     frameRate: "24 FPS",
-//     resolution: "1280x720",
-//     status: false,
-//   },
-// ];
+// type SourceItem = {
+//   id: string;
+//   name: string;
+//   type: SourceType;
+//   url: string;
+//   fps_target: string;
+//   resolution: string;
+//   status: boolean;
+// };
 
 export default function SourcesPage() {
-  const [sources, setSources] = useState<SourceItem[]>();
+  const [sources, setSources] = useState<SourceItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState("create");
@@ -80,11 +65,18 @@ export default function SourcesPage() {
     
     fetchSources();
   }, [token, router]);
+  useEffect(() => {
+    const storedSources = readSourcesFromStorage();
+    if (storedSources) {
+      setSources(storedSources);
+    }
+  }, []);
+
+  useEffect(() => {
+    writeSourcesToStorage(sources);
+  }, [sources]);
 
   const filteredSources = useMemo(() => {
-    if (!Array.isArray(sources)) {
-      return []; 
-    }
     const query = searchQuery.trim().toLowerCase();
     if (!query) {
       return sources;
@@ -164,22 +156,6 @@ export default function SourcesPage() {
         setLoading(false);
       }
     }
-    // const nextId = sources.length ? Math.max(...sources.map((item) => item.id)) + 1 : 1;
-
-    // setSources((currentSources) => [
-    //   ...currentSources,
-    //   {
-    //     id: nextId,
-    //     name: name.trim(),
-    //     type,
-    //     url: url.trim(),
-    //     frameRate: type === "MP4" ? "25 FPS" : "30 FPS",
-    //     resolution: type === "Youtube" ? "1280x720" : "1920x1080",
-    //     status: "Active",
-    //     userId: user?.id
-    //   },
-    // ]);
-
     setIsModalOpen(false);
     resetForm();
     fetchSources();

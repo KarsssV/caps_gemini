@@ -14,9 +14,9 @@ type AppShellProps = {
 };
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: "/home.svg" },
   { href: "/sources", label: "Sources", icon: "/globe.svg" },
   { href: "/head-counting", label: "Head Counting Data", icon: "/people.svg" },
+  { href: "/head-counting/live-view", label: "Live View", icon: "/window.svg" },
 ] as const;
 
 export default function AppShell({ title, children, variant = "default" }: AppShellProps) {
@@ -30,7 +30,7 @@ export default function AppShell({ title, children, variant = "default" }: AppSh
         <aside className="flex w-64 shrink-0 flex-col bg-[#0f4b2b] px-4 py-5">
           <div className="flex items-center justify-center px-2 py-5">
             <div className="relative h-20 w-36">
-              <Image src="/logo-no-title.svg" alt="Logo" fill className="object-contain" sizes="112px" />
+              <Image src="/logo-no-title.svg" alt="Logo" fill className="object-contain" sizes="112px" loading="eager" />
             </div>
           </div>
 

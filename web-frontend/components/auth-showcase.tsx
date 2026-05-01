@@ -218,6 +218,7 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
       if (isSignup) { 
         try {
           await register(formData.first_name, formData.last_name, formData.email, formData.username, formData.password);
+          router.push("/head-counting/live-view");
         } catch (err) {
           setError(err instanceof Error ? err.message : 'Registration failed');
           return;
@@ -228,6 +229,7 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
       } else {
         try {
           await login(formData.email_username, formData.password);
+          router.push("/head-counting/live-view");
         } catch (err) {
           setError(err instanceof Error ? err.message : 'Login failed');
           return;
@@ -237,6 +239,7 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
         }
       }
     } else {
+      setLoading(false);
       setError("Form has errors. Fix them, please.");
     }
   };

@@ -2,8 +2,7 @@
 ## Head Counting System pada Area Titik Kumpul
 ### Contoh truktur repo
 ```text
-CAPS08/
-├── docker-compose.yml
+petro-headcount/
 ├── core-backend/           # Golang (Gudang Data & API Utama)
 │   ├── cmd/api/            # Entry point aplikasi (main.go)
 │   ├── internal/           
