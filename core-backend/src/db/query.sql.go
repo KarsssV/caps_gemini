@@ -82,27 +82,27 @@ func (q *Queries) CreateHeadCountLog(ctx context.Context, arg CreateHeadCountLog
 
 const createSnapshot = `-- name: CreateSnapshot :one
 INSERT INTO snapshots (
-    source_id,
+    source_name,
     image_path,
     head_count_at_time
 ) VALUES (
     $1, $2, $3
 )
-RETURNING id, source_id, image_path, head_count_at_time, created_at
+RETURNING id, source_name, image_path, head_count_at_time, created_at
 `
 
 type CreateSnapshotParams struct {
-	SourceID        uuid.UUID `json:"source_id"`
-	ImagePath       string    `json:"image_path"`
-	HeadCountAtTime int32     `json:"head_count_at_time"`
+	SourceName      string `json:"source_name"`
+	ImagePath       string `json:"image_path"`
+	HeadCountAtTime int32  `json:"head_count_at_time"`
 }
 
 func (q *Queries) CreateSnapshot(ctx context.Context, arg CreateSnapshotParams) (Snapshot, error) {
-	row := q.db.QueryRow(ctx, createSnapshot, arg.SourceID, arg.ImagePath, arg.HeadCountAtTime)
+	row := q.db.QueryRow(ctx, createSnapshot, arg.SourceName, arg.ImagePath, arg.HeadCountAtTime)
 	var i Snapshot
 	err := row.Scan(
 		&i.ID,
-		&i.SourceID,
+		&i.SourceName,
 		&i.ImagePath,
 		&i.HeadCountAtTime,
 		&i.CreatedAt,
@@ -199,7 +199,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 
 const deleteSnapshot = `-- name: DeleteSnapshot :one
 DELETE FROM snapshots WHERE id = $1
-RETURNING id, source_id, image_path, head_count_at_time, created_at
+RETURNING id, source_name, image_path, head_count_at_time, created_at
 `
 
 func (q *Queries) DeleteSnapshot(ctx context.Context, id uuid.UUID) (Snapshot, error) {
@@ -207,7 +207,7 @@ func (q *Queries) DeleteSnapshot(ctx context.Context, id uuid.UUID) (Snapshot, e
 	var i Snapshot
 	err := row.Scan(
 		&i.ID,
-		&i.SourceID,
+		&i.SourceName,
 		&i.ImagePath,
 		&i.HeadCountAtTime,
 		&i.CreatedAt,
@@ -332,7 +332,7 @@ func (q *Queries) GetHeadCountLogBySource(ctx context.Context, sourceID uuid.UUI
 }
 
 const getSnapshotById = `-- name: GetSnapshotById :one
-SELECT id, source_id, image_path, head_count_at_time, created_at FROM snapshots WHERE id = $1
+SELECT id, source_name, image_path, head_count_at_time, created_at FROM snapshots WHERE id = $1
 `
 
 func (q *Queries) GetSnapshotById(ctx context.Context, id uuid.UUID) (Snapshot, error) {
@@ -340,7 +340,7 @@ func (q *Queries) GetSnapshotById(ctx context.Context, id uuid.UUID) (Snapshot, 
 	var i Snapshot
 	err := row.Scan(
 		&i.ID,
-		&i.SourceID,
+		&i.SourceName,
 		&i.ImagePath,
 		&i.HeadCountAtTime,
 		&i.CreatedAt,
@@ -349,7 +349,7 @@ func (q *Queries) GetSnapshotById(ctx context.Context, id uuid.UUID) (Snapshot, 
 }
 
 const getSnapshots = `-- name: GetSnapshots :many
-SELECT id, source_id, image_path, head_count_at_time, created_at FROM snapshots
+SELECT id, source_name, image_path, head_count_at_time, created_at FROM snapshots
 `
 
 func (q *Queries) GetSnapshots(ctx context.Context) ([]Snapshot, error) {
@@ -363,37 +363,7 @@ func (q *Queries) GetSnapshots(ctx context.Context) ([]Snapshot, error) {
 		var i Snapshot
 		if err := rows.Scan(
 			&i.ID,
-			&i.SourceID,
-			&i.ImagePath,
-			&i.HeadCountAtTime,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getSnapshotsBySource = `-- name: GetSnapshotsBySource :many
-SELECT id, source_id, image_path, head_count_at_time, created_at FROM snapshots WHERE source_id = $1
-`
-
-func (q *Queries) GetSnapshotsBySource(ctx context.Context, sourceID uuid.UUID) ([]Snapshot, error) {
-	rows, err := q.db.Query(ctx, getSnapshotsBySource, sourceID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Snapshot
-	for rows.Next() {
-		var i Snapshot
-		if err := rows.Scan(
-			&i.ID,
-			&i.SourceID,
+			&i.SourceName,
 			&i.ImagePath,
 			&i.HeadCountAtTime,
 			&i.CreatedAt,

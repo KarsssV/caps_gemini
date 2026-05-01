@@ -121,7 +121,7 @@ type HeadCountLog struct {
 
 type Snapshot struct {
 	ID              uuid.UUID          `json:"id"`
-	SourceID        uuid.UUID          `json:"source_id"`
+	SourceName      string             `json:"source_name"`
 	ImagePath       string             `json:"image_path"`
 	HeadCountAtTime int32              `json:"head_count_at_time"`
 	CreatedAt       pgtype.Timestamptz `json:"created_at"`

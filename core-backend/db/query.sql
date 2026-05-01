@@ -79,24 +79,23 @@ SELECT * FROM head_count_logs WHERE source_id = $1;
 
 -- name: CreateSnapshot :one
 INSERT INTO snapshots (
-    id,
-    source_id,
+    source_name,
     image_path,
     head_count_at_time
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3
 )
 RETURNING *;
+
+-- name: GetSnapshots :many
+SELECT * FROM snapshots;
+
+-- name: GetSnapshotById :one
+SELECT * FROM snapshots WHERE id = $1;
 
 -- name: DeleteSnapshot :one
 DELETE FROM snapshots WHERE id = $1
 RETURNING *;
-
--- name: GetSnapshotsBySource :many
-SELECT * FROM snapshots WHERE source_id = $1;
-
--- name: GetSnapshotById :one
-SELECT * FROM snapshots WHERE id = $1;
 
 -- name: CreateAuditLog :exec
 INSERT INTO audit_logs (

@@ -63,21 +63,21 @@ func (h *Handler) HandleRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, SnapshotResponse{Snapshots: snapshots})
 }
 
-func (h *Handler) HandleRequestsBySource(c *gin.Context) {
-	sourceId, err := uuid.Parse(c.Param("sourceId"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+// func (h *Handler) HandleRequestsBySource(c *gin.Context) {
+// 	sourceId, err := uuid.Parse(c.Param("sourceId"))
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
 
-	snapshots, err := h.svc.RequestBySource(c.Request.Context(), sourceId)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		return
-	}
+// 	snapshots, err := h.svc.RequestBySource(c.Request.Context(), sourceId)
+// 	if err != nil {
+// 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, snapshots)
-}
+// 	c.JSON(http.StatusOK, snapshots)
+// }
 
 func (h *Handler) HandleRequestById(c *gin.Context) {
 	snapshotId, err := uuid.Parse(c.Param("snapshotId"))

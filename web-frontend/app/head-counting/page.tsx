@@ -6,16 +6,16 @@ import { useRouter } from "next/navigation";
 import AppShell from "../../components/app-shell";
 import { useAuth } from "../../contexts/auth-context";
 
-type SourceItem = {
-  id: string;
-  name: string;
-};
+// type SourceItem = {
+//   id: string;
+//   name: string;
+// };
 
-type SnapshotRecords = {
+type SnapshotRecord = {
   id: string;
   date: string;
   timestamp: string;
-  source_id: string;
+  source_name: string;
   head_count_at_time: number;
   image_path: string;
 };
@@ -54,8 +54,8 @@ type SnapshotRecords = {
 // ];
 
 export default function HeadCountingPage() {
-  const [sources, setSources] = useState<SourceItem[]>();
-  const [records, setRecords] = useState<SnapshotRecords[]>();
+  const [sources, setSources] = useState<string[]>();
+  const [records, setRecords] = useState<SnapshotRecord[]>();
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -67,26 +67,6 @@ export default function HeadCountingPage() {
   const [err, setError] = useState("");
   const router = useRouter();
 
-  async function fetchSources() {
-    try {
-      const response = await fetch(`http://localhost:8080/api/sources`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        const sourcesData = await response.json();
-        setSources(sourcesData.sources);
-      } else {
-        router.push("/");
-      }
-    } catch (error) {
-      router.push("/");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function fetchRecords() {
     try {
       const response = await fetch(`http://localhost:8080/api/snapshots`, {
@@ -96,17 +76,20 @@ export default function HeadCountingPage() {
       });
       if (response.ok) {
         var recordData = await response.json();
-        recordData = recordData.snapshots.map((record: any) => {
-          const date = new Date(record.created_at);
-          
-          return {
-            ...record,
-            date: date.getDate().toString().padStart(2, '0') + "/" + (date.getMonth() + 1).toString().padStart(2, '0') + "/" + date.getFullYear().toString(),
-            timestamp: date.getHours().toString() + ":" + date.getMinutes().toString() + ":" + date.getSeconds().toString() + "." + date.getMilliseconds().toString(),
-          };
-        });
-        setRecords(recordData);
-        console.log(recordData);
+        if(recordData.snapshots!= null){
+          recordData = recordData.snapshots.map((record: any) => {
+            const date = new Date(record.created_at);
+            
+            return {
+              ...record,
+              date: date.getDate().toString().padStart(2, '0') + "/" + (date.getMonth() + 1).toString().padStart(2, '0') + "/" + date.getFullYear().toString(),
+              timestamp: date.getHours().toString() + ":" + date.getMinutes().toString() + ":" + date.getSeconds().toString() + "." + date.getMilliseconds().toString(),
+            };
+          });
+          setRecords(recordData);
+          console.log(recordData)
+          setSources([...new Set<string>(recordData.map((record : SnapshotRecord) => record.source_name))]);
+        }
       }
     } catch (error) {
       router.push("/");
@@ -115,6 +98,16 @@ export default function HeadCountingPage() {
     }
   }
 
+  // async function fetchSources() {
+  //   try {
+  //     setSources(records?.length ? [...new Set(records.map(item => item.source_name))] : []);
+  //   } catch (error) {
+  //     router.push("/");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }
+
   useEffect(() => {
     if (!token) {
       router.push("/login");
@@ -122,7 +115,7 @@ export default function HeadCountingPage() {
     }
     
     fetchRecords();
-    fetchSources();
+    // fetchSources();
   }, [token, router]);
 
   const filteredRecords = useMemo(() => {
@@ -132,7 +125,7 @@ export default function HeadCountingPage() {
     return records.filter((record) => {
       const matchSearch =
         !searchQuery ||
-        record.source_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        record.source_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         record.head_count_at_time.toString().includes(searchQuery);
 
       const recordDate = new Date(record.date);
@@ -142,7 +135,7 @@ export default function HeadCountingPage() {
       const matchDate =
         (!fromDate || recordDate >= fromDate) && (!toDate || recordDate <= toDate);
 
-      const matchSource = !selectedSource || record.source_id === selectedSource;
+      const matchSource = !selectedSource || record.source_name === selectedSource;
 
       return matchSearch && matchDate && matchSource;
     });
@@ -200,8 +193,8 @@ export default function HeadCountingPage() {
                 className="h-10 rounded-sm border border-white/30 bg-[#0f4b2b]/60 px-3 text-sm text-white outline-none focus:border-[#e2c15d]"
               >
                 {sources ? sources.map((source) => (
-                  <option key={source.id} value={source.id}>
-                    {source.name}
+                  <option key={source} value={source}>
+                    {source}
                   </option>
                 )) : ""}
               </select>
@@ -241,7 +234,7 @@ export default function HeadCountingPage() {
                       <td className="border border-[#2f8e4c]/40 px-3 py-3">{index + 1}</td>
                       <td className="border border-[#2f8e4c]/40 px-3 py-3">{record.date}</td>
                       <td className="border border-[#2f8e4c]/40 px-3 py-3">{record.timestamp}</td>
-                      <td className="border border-[#2f8e4c]/40 px-3 py-3">{sources ? sources.find(s => s.id === record.source_id)?.name : "Source not found"}</td>
+                      <td className="border border-[#2f8e4c]/40 px-3 py-3">{sources ? sources.find(s => s === record.source_name) : "Source not found"}</td>
                       <td className="border border-[#2f8e4c]/40 px-3 py-3 font-semibold">{record.head_count_at_time}</td>
                       <td className="border border-[#2f8e4c]/40 px-3 py-3">
                         <div className="relative h-12 w-20 overflow-hidden rounded-sm bg-[#0f4b2b] border border-white/20">

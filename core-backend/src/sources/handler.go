@@ -151,10 +151,6 @@ func (h *Handler) HandleRequestById(c *gin.Context) {
 	c.JSON(http.StatusOK, source)
 }
 
-func (res ProbeRes) ProbeSource(req ProbeReq) {
-
-}
-
 func (h *Handler) HandleUpdateById(c *gin.Context) {
 	sourceId, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -199,12 +195,7 @@ func (h *Handler) HandleUpdateById(c *gin.Context) {
 	var parseReq ProbeReq
 	parseReq.Type = req.Type
 	parseReq.Url = req.Url
-
-	// generate random uuid for source_id
-	parseReq.SourceID, err = uuid.NewRandom()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	}
+	parseReq.SourceID = sourceId
 
 	// marshal the parseReq
 	jsonReq, err := json.Marshal(parseReq)

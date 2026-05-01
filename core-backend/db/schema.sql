@@ -32,7 +32,7 @@ CREATE TABLE users (
 
 CREATE TABLE snapshots (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    source_id UUID NOT NULL REFERENCES sources(id),
+    source_name TEXT NOT NULL,
     image_path TEXT NOT NULL,
     head_count_at_time INT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

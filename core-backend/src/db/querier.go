@@ -23,7 +23,6 @@ type Querier interface {
 	GetHeadCountLogBySource(ctx context.Context, sourceID uuid.UUID) ([]HeadCountLog, error)
 	GetSnapshotById(ctx context.Context, id uuid.UUID) (Snapshot, error)
 	GetSnapshots(ctx context.Context) ([]Snapshot, error)
-	GetSnapshotsBySource(ctx context.Context, sourceID uuid.UUID) ([]Snapshot, error)
 	GetSourceByID(ctx context.Context, id uuid.UUID) (Source, error)
 	GetSources(ctx context.Context) ([]Source, error)
 	GetSourcesId(ctx context.Context) ([]uuid.UUID, error)
