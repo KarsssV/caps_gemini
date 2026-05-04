@@ -2,7 +2,7 @@
 ALTER TABLE snapshots
 DROP COLUMN source_id;
 ALTER TABLE snapshots
-ADD source_name TEXT;
+ADD source_name VARCHAR;
 
 -- +goose Down
 ALTER TABLE snapshots

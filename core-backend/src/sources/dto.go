@@ -3,7 +3,7 @@ package sources
 import "github.com/google/uuid"
 
 type SourceAdd struct {
-	SourceID   uuid.UUID `json:"source_id"`
+	SourceID   uuid.UUID `json:"id"`
 	Name       string    `json:"name" binding:"required"`
 	Type       string    `json:"type" binding:"required,oneof=MP4 RTSP Webcam Youtube Other"`
 	Url        string    `json:"url" binding:"required"`

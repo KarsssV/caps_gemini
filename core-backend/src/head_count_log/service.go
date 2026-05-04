@@ -5,8 +5,6 @@ import (
 	"errors"
 
 	"gin-auth-supabase/src/db"
-
-	"github.com/google/uuid"
 )
 
 type Service struct {
@@ -18,9 +16,10 @@ func NewService(q *db.Queries) *Service {
 }
 
 func (s *Service) Add(ctx context.Context, req HeadCountLogAdd) (*db.HeadCountLog, error) {
-
+	sourceName, err := s.q.GetSourceNameByID(ctx, req.SourceID)
+	println(sourceName)
 	headCountLog, err := s.q.CreateHeadCountLog(ctx, db.CreateHeadCountLogParams{
-		SourceID:   req.SourceID,
+		SourceName: sourceName,
 		HeadCount:  req.HeadCount,
 		CurrentFps: req.CurrentFps,
 		Timestamp:  req.Timestamp,
@@ -28,8 +27,17 @@ func (s *Service) Add(ctx context.Context, req HeadCountLogAdd) (*db.HeadCountLo
 	return &headCountLog, err
 }
 
-func (s *Service) RequestBySource(ctx context.Context, sourceId uuid.UUID) (*[]db.HeadCountLog, error) {
-	headCountLogs, err := s.q.GetHeadCountLogBySource(ctx, sourceId)
+func (s *Service) RequestBySource(ctx context.Context, sourceName string) (*[]db.HeadCountLog, error) {
+	headCountLogs, err := s.q.GetHeadCountLogBySource(ctx, sourceName)
+	if err != nil {
+		return nil, errors.New("Source not found")
+	}
+
+	return &headCountLogs, nil
+}
+
+func (s *Service) RequestLatestBySource(ctx context.Context, sourceName string) (*[]db.HeadCountLog, error) {
+	headCountLogs, err := s.q.GetLatestHeadCountLogBySource(ctx, sourceName)
 	if err != nil {
 		return nil, errors.New("Source not found")
 	}

@@ -26,6 +26,7 @@ func (s *Service) Add(ctx context.Context, req SourceAdd) (*db.Source, error) {
 	err := s.store.ExecTx(ctx, func(q *db.Queries) error {
 		var err error
 		source, err = s.q.CreateSource(ctx, db.CreateSourceParams{
+			ID:         req.SourceID,
 			Name:       req.Name,
 			Type:       db.Sourcetype(req.Type),
 			Url:        req.Url,
@@ -71,6 +72,15 @@ func (s *Service) RequestSourcesId(ctx context.Context) (*[]uuid.UUID, error) {
 
 func (s *Service) RequestByID(ctx context.Context, sourceId uuid.UUID) (*db.Source, error) {
 	source, err := s.q.GetSourceByID(ctx, sourceId)
+	if err != nil {
+		return nil, errors.New("Source not found")
+	}
+
+	return &source, nil
+}
+
+func (s *Service) RequestNameByID(ctx context.Context, sourceId uuid.UUID) (*string, error) {
+	source, err := s.q.GetSourceNameByID(ctx, sourceId)
 	if err != nil {
 		return nil, errors.New("Source not found")
 	}

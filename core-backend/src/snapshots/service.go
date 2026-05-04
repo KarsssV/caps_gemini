@@ -17,9 +17,10 @@ func NewService(q *db.Queries) *Service {
 }
 
 func (s *Service) Add(ctx context.Context, req SnapshotAdd) (*db.Snapshot, error) {
-	source, err := s.q.GetSourceByID(ctx, req.SourceID)
+	sourceName, err := s.q.GetSourceNameByID(ctx, req.SourceID)
+	println(sourceName)
 	snapshot, err := s.q.CreateSnapshot(ctx, db.CreateSnapshotParams{
-		SourceName:      source.Name,
+		SourceName:      sourceName,
 		ImagePath:       req.ImagePath,
 		HeadCountAtTime: req.HeadCountAtTime,
 	})

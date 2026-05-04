@@ -46,12 +46,12 @@ export default function SourcesPage() {
       });
       if (response.ok) {
         const sourcesData = await response.json();
-        setSources(sourcesData.sources);
+        setSources(sourcesData ? sourcesData.sources : []);
       } else {
         router.push("/");
       }
     } catch (error) {
-      router.push("/");
+      router.push("/error");
     } finally {
       setLoading(false);
     }
@@ -65,6 +65,7 @@ export default function SourcesPage() {
     
     fetchSources();
   }, [token, router]);
+  
   useEffect(() => {
     const storedSources = readSourcesFromStorage();
     if (storedSources) {
@@ -78,6 +79,9 @@ export default function SourcesPage() {
 
   const filteredSources = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
+    if(!sources){
+      return null;
+    }
     if (!query) {
       return sources;
     }
@@ -229,14 +233,14 @@ export default function SourcesPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredSources.length === 0 ? (
+                { !filteredSources || filteredSources?.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="border border-[#2f8e4c]/40 px-3 py-8 text-center text-white/50">
                       No sources found.
                     </td>
                   </tr>
                 ) : (
-                  filteredSources.map((source, index) => (
+                  filteredSources?.map((source, index) => (
                     <tr key={source.id} className="bg-[#145e35]/40 text-white/90">
                       <td className="border border-[#2f8e4c]/40 px-2 py-3">{index + 1}</td>
                       <td className="border border-[#2f8e4c]/40 px-3 py-3">{source.name}</td>

@@ -1,46 +1,16 @@
-export type SourceType = "CCTV" | "YouTube" | "File";
+export type SourceType = "MP4" | "RTSP" | "Webcam" | "Youtube" | "Other";
 
 export type SourceItem = {
-  id: number;
+  id: string;
   name: string;
   type: SourceType;
   url: string;
-  frameRate: string;
+  fps_target: string;
   resolution: string;
-  status: "Active" | "Inactive";
+  status: boolean;
 };
 
 export const sourceStorageKey = "caps08-sources";
-
-export const initialSources: SourceItem[] = [
-  {
-    id: 1,
-    name: "Gate Utama",
-    type: "CCTV",
-    url: "rtsp://10.1.0.10/live",
-    frameRate: "30 FPS",
-    resolution: "1920x1080",
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Warehouse North",
-    type: "CCTV",
-    url: "rtsp://10.1.0.11/live",
-    frameRate: "24 FPS",
-    resolution: "1280x720",
-    status: "Active",
-  },
-  {
-    id: 3,
-    name: "Pintu Belakang",
-    type: "CCTV",
-    url: "rtsp://10.1.0.12/live",
-    frameRate: "24 FPS",
-    resolution: "1280x720",
-    status: "Inactive",
-  },
-];
 
 export function readSourcesFromStorage(): SourceItem[] | null {
   if (typeof window === "undefined") {

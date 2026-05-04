@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type Handler struct {
@@ -31,13 +30,29 @@ func (h *Handler) HandleAdd(c *gin.Context) {
 }
 
 func (h *Handler) HandleRequestBySource(c *gin.Context) {
-	sourceId, err := uuid.Parse(c.Param("sourceId"))
-	if err != nil {
+	sourceName := c.Param("sourceName")
+	if sourceName == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": c.Param(":id")})
 		return
 	}
 
-	headCountLogs, err := h.svc.RequestBySource(c.Request.Context(), sourceId)
+	headCountLogs, err := h.svc.RequestBySource(c.Request.Context(), sourceName)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, HeadCountLogResponse{HeadCountLogs: headCountLogs})
+}
+
+func (h *Handler) HandleRequestLatestBySource(c *gin.Context) {
+	sourceName := c.Param("sourceName")
+	if sourceName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": c.Param(":id")})
+		return
+	}
+
+	headCountLogs, err := h.svc.RequestLatestBySource(c.Request.Context(), sourceName)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return

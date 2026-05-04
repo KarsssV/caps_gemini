@@ -112,7 +112,7 @@ type AuditLog struct {
 
 type HeadCountLog struct {
 	ID         uuid.UUID          `json:"id"`
-	SourceID   uuid.UUID          `json:"source_id"`
+	SourceName string             `json:"source_name"`
 	HeadCount  int32              `json:"head_count"`
 	CurrentFps float64            `json:"current_fps"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`

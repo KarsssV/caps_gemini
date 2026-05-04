@@ -45,17 +45,17 @@ func (q *Queries) CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) 
 
 const createHeadCountLog = `-- name: CreateHeadCountLog :one
 INSERT INTO head_count_logs (
-    source_id,
+    source_name,
     head_count,
     current_fps,
     timestamp
 ) VALUES (
     $1, $2, $3, $4
-) RETURNING id, source_id, head_count, current_fps, created_at, timestamp
+) RETURNING id, source_name, head_count, current_fps, created_at, timestamp
 `
 
 type CreateHeadCountLogParams struct {
-	SourceID   uuid.UUID        `json:"source_id"`
+	SourceName string           `json:"source_name"`
 	HeadCount  int32            `json:"head_count"`
 	CurrentFps float64          `json:"current_fps"`
 	Timestamp  pgtype.Timestamp `json:"timestamp"`
@@ -63,7 +63,7 @@ type CreateHeadCountLogParams struct {
 
 func (q *Queries) CreateHeadCountLog(ctx context.Context, arg CreateHeadCountLogParams) (HeadCountLog, error) {
 	row := q.db.QueryRow(ctx, createHeadCountLog,
-		arg.SourceID,
+		arg.SourceName,
 		arg.HeadCount,
 		arg.CurrentFps,
 		arg.Timestamp,
@@ -71,7 +71,7 @@ func (q *Queries) CreateHeadCountLog(ctx context.Context, arg CreateHeadCountLog
 	var i HeadCountLog
 	err := row.Scan(
 		&i.ID,
-		&i.SourceID,
+		&i.SourceName,
 		&i.HeadCount,
 		&i.CurrentFps,
 		&i.CreatedAt,
@@ -112,6 +112,7 @@ func (q *Queries) CreateSnapshot(ctx context.Context, arg CreateSnapshotParams) 
 
 const createSource = `-- name: CreateSource :one
 INSERT INTO sources (
+    id,
     name,
     type,
     url,
@@ -119,12 +120,13 @@ INSERT INTO sources (
     resolution,
     status
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5, $6, $7
 )
 RETURNING id, name, type, url, fps_target, resolution, status, created_at
 `
 
 type CreateSourceParams struct {
+	ID         uuid.UUID  `json:"id"`
 	Name       string     `json:"name"`
 	Type       Sourcetype `json:"type"`
 	Url        string     `json:"url"`
@@ -135,6 +137,7 @@ type CreateSourceParams struct {
 
 func (q *Queries) CreateSource(ctx context.Context, arg CreateSourceParams) (Source, error) {
 	row := q.db.QueryRow(ctx, createSource,
+		arg.ID,
 		arg.Name,
 		arg.Type,
 		arg.Url,
@@ -301,11 +304,11 @@ func (q *Queries) GetAuditLogsByUser(ctx context.Context, userID uuid.UUID) ([]A
 }
 
 const getHeadCountLogBySource = `-- name: GetHeadCountLogBySource :many
-SELECT id, source_id, head_count, current_fps, created_at, timestamp FROM head_count_logs WHERE source_id = $1
+SELECT id, source_name, head_count, current_fps, created_at, timestamp FROM head_count_logs WHERE source_name = $1
 `
 
-func (q *Queries) GetHeadCountLogBySource(ctx context.Context, sourceID uuid.UUID) ([]HeadCountLog, error) {
-	rows, err := q.db.Query(ctx, getHeadCountLogBySource, sourceID)
+func (q *Queries) GetHeadCountLogBySource(ctx context.Context, sourceName string) ([]HeadCountLog, error) {
+	rows, err := q.db.Query(ctx, getHeadCountLogBySource, sourceName)
 	if err != nil {
 		return nil, err
 	}
@@ -315,7 +318,38 @@ func (q *Queries) GetHeadCountLogBySource(ctx context.Context, sourceID uuid.UUI
 		var i HeadCountLog
 		if err := rows.Scan(
 			&i.ID,
-			&i.SourceID,
+			&i.SourceName,
+			&i.HeadCount,
+			&i.CurrentFps,
+			&i.CreatedAt,
+			&i.Timestamp,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getLatestHeadCountLogBySource = `-- name: GetLatestHeadCountLogBySource :many
+SELECT id, source_name, head_count, current_fps, created_at, timestamp FROM head_count_logs WHERE source_name = $1 ORDER BY timestamp DESC LIMIT 1
+`
+
+func (q *Queries) GetLatestHeadCountLogBySource(ctx context.Context, sourceName string) ([]HeadCountLog, error) {
+	rows, err := q.db.Query(ctx, getLatestHeadCountLogBySource, sourceName)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HeadCountLog
+	for rows.Next() {
+		var i HeadCountLog
+		if err := rows.Scan(
+			&i.ID,
+			&i.SourceName,
 			&i.HeadCount,
 			&i.CurrentFps,
 			&i.CreatedAt,
@@ -396,6 +430,17 @@ func (q *Queries) GetSourceByID(ctx context.Context, id uuid.UUID) (Source, erro
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getSourceNameByID = `-- name: GetSourceNameByID :one
+SELECT name FROM sources WHERE id = $1
+`
+
+func (q *Queries) GetSourceNameByID(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, getSourceNameByID, id)
+	var name string
+	err := row.Scan(&name)
+	return name, err
 }
 
 const getSources = `-- name: GetSources :many

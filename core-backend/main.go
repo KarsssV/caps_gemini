@@ -101,16 +101,16 @@ func main() {
 		headCountLogApi := Api.Group("/logs")
 		{
 			headCountLogApi.POST("", headCountLogHandler.HandleAdd)
-			headCountLogApi.GET("/:sourceId", headCountLogHandler.HandleRequestBySource)
+			// headCountLogApi.GET("/:sourceId", headCountLogHandler.HandleRequestBySource)
+			headCountLogApi.GET("/:sourceName", headCountLogHandler.HandleRequestBySource)
 		}
 
 		snapshotsApi := Api.Group("/snapshots")
 		{
 			snapshotsApi.POST("", snapshotsHandler.HandleAdd)
 			snapshotsApi.GET("", snapshotsHandler.HandleRequest)
-			// snapshotsApi.GET("/:sourceId", snapshotsHandler.HandleRequestsBySource)
-			snapshotsApi.GET("/:sourceId/:snapshotId", snapshotsHandler.HandleRequestById)
-			snapshotsApi.DELETE("/:sourceId/:snapshotId", snapshotsHandler.HandleDeleteById)
+			// snapshotsApi.GET("/:sourceId/:snapshotId", snapshotsHandler.HandleRequestById)
+			// snapshotsApi.DELETE("/:sourceId/:snapshotId", snapshotsHandler.HandleDeleteById)
 		}
 
 		auditLogApi := Api.Group("/crudlogs")

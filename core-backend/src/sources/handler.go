@@ -68,19 +68,19 @@ func (h *Handler) HandleAdd(c *gin.Context) {
 	}
 
 	// probe request to BE AI
-	var parseReq ProbeReq
-	parseReq.Type = req.Type
-	parseReq.Url = req.Url
+	var probeReq ProbeReq
+	probeReq.Type = req.Type
+	probeReq.Url = req.Url
 
 	// generate random uuid for source_id
 	var err error
-	parseReq.SourceID, err = uuid.NewRandom()
+	probeReq.SourceID, err = uuid.NewRandom()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	// marshal the parseReq
-	jsonReq, err := json.Marshal(parseReq)
+	// marshal the probeReq
+	jsonReq, err := json.Marshal(probeReq)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -100,10 +100,9 @@ func (h *Handler) HandleAdd(c *gin.Context) {
 	}
 
 	// assign the probe result into req (db variable)
-	req.SourceID = parseReq.SourceID
+	req.SourceID = probeReq.SourceID
 	status := true
 	req.Status = &status
-	req.Url = parseRes.Url
 	req.Resolution = parseRes.Resolution
 	req.FpsTarget = int32(parseRes.Fps)
 
@@ -192,13 +191,13 @@ func (h *Handler) HandleUpdateById(c *gin.Context) {
 	}
 
 	// probe request to BE AI
-	var parseReq ProbeReq
-	parseReq.Type = req.Type
-	parseReq.Url = req.Url
-	parseReq.SourceID = sourceId
+	var probeReq ProbeReq
+	probeReq.Type = req.Type
+	probeReq.Url = req.Url
+	probeReq.SourceID = sourceId
 
-	// marshal the parseReq
-	jsonReq, err := json.Marshal(parseReq)
+	// marshal the probeReq
+	jsonReq, err := json.Marshal(probeReq)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}

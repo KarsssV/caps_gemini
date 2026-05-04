@@ -28,6 +28,7 @@ SELECT * FROM users WHERE Id = $1;
 
 -- name: CreateSource :one
 INSERT INTO sources (
+    id,
     name,
     type,
     url,
@@ -35,7 +36,7 @@ INSERT INTO sources (
     resolution,
     status
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5, $6, $7
 )
 RETURNING *;
 
@@ -64,9 +65,12 @@ SELECT id FROM sources;
 -- name: GetSourceByID :one
 SELECT * FROM sources WHERE id = $1;
 
+-- name: GetSourceNameByID :one
+SELECT name FROM sources WHERE id = $1;
+
 -- name: CreateHeadCountLog :one
 INSERT INTO head_count_logs (
-    source_id,
+    source_name,
     head_count,
     current_fps,
     timestamp
@@ -75,7 +79,10 @@ INSERT INTO head_count_logs (
 ) RETURNING *;
 
 -- name: GetHeadCountLogBySource :many
-SELECT * FROM head_count_logs WHERE source_id = $1;
+SELECT * FROM head_count_logs WHERE source_name = $1;
+
+-- name: GetLatestHeadCountLogBySource :many
+SELECT * FROM head_count_logs WHERE source_name = $1 ORDER BY timestamp DESC LIMIT 1;
 
 -- name: CreateSnapshot :one
 INSERT INTO snapshots (

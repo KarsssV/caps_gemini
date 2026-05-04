@@ -1,8 +1,6 @@
 package websock
 
 import (
-	"encoding/base64"
-	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -43,33 +41,11 @@ func ReceiveLogs(hub *WSHub) gin.HandlerFunc {
 		fps := c.PostForm("current_fps")
 		timestamp := c.PostForm("timestamp")
 
-		file, _, err := c.Request.FormFile("snapshot_image")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing snapshot_image"})
-			return
-		}
-		defer file.Close()
-
-		// Read file into bytes
-		fileBytes, err := io.ReadAll(file)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read image"})
-			return
-		}
-
-		// (Optional) Process it a bit here:
-		// e.g., Save bytes to local storage, push data to your Repository/Database layer
-
-		// 3. Convert image to base64 so it can be easily sent over JSON WebSockets
-		base64Str := base64.StdEncoding.EncodeToString(fileBytes)
-		imgDataURI := "data:image/png;base64," + base64Str
-
-		// 4. Construct payload for the frontend
+		// Construct payload for the frontend
 		broadcastData := gin.H{
 			"head_count": headCount,
 			"fps":        fps,
 			"timestamp":  timestamp,
-			"image":      imgDataURI,
 		}
 
 		// 5. Send to WebSocket Hub
