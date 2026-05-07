@@ -12,6 +12,7 @@ import (
 	headCountLog "gin-auth-supabase/src/head_count_log"
 	"gin-auth-supabase/src/snapshots"
 	"gin-auth-supabase/src/sources"
+	websock "gin-auth-supabase/src/websocket"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -31,6 +32,9 @@ func main() {
 	}
 	defer pool.Close()
 
+	wsHub := websock.NewWSHub()
+	go wsHub.Run()
+
 	queries := db.New(pool)
 	authService := auth.NewService(queries)
 	SourcesService := sources.NewService(queries, pool)
@@ -40,12 +44,9 @@ func main() {
 
 	authHandler := auth.NewHandler(authService)
 	SourcesHandler := sources.NewHandler(SourcesService)
-	headCountLogHandler := headCountLog.NewHandler(headCountLogService)
+	headCountLogHandler := headCountLog.NewHandler(headCountLogService, wsHub)
 	snapshotsHandler := snapshots.NewHandler(snapshotsService)
 	auditLogHandler := auditLog.NewHandler(auditLogService)
-
-	// wsHub := websock.NewWSHub()
-	// go wsHub.Run()
 
 	r := gin.Default()
 
@@ -68,8 +69,7 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// r.POST("/logs", websock.ReceiveLogs(wsHub))
-	// r.GET("/ws", websock.HandleWS(wsHub))
+	r.GET("/ws", websock.HandleWS(wsHub))
 
 	r.Static("public/snapshots", "./public/snapshots/")
 

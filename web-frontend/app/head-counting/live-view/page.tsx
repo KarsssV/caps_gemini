@@ -2,24 +2,60 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import AppShell from "../../../components/app-shell";
 import { useRouter } from "next/navigation";
 import { readSourcesFromStorage, type SourceItem } from "../../../lib/sources";
 import { useAuth } from "../../../contexts/auth-context";
 
-type LiveSource = SourceItem & {
-  endpoint: string;
-  baseFps: number;
-  baseCount: number;
+type HeadCountLog = {
+  id: number;
+  source_name: string;
+  head_count: number;
+  current_fps: string;
+  timestamp: string;
 };
-
 export default function LiveViewPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sources, setSources] = useState<SourceItem[]>([]);
   const [selectedSourceId, setSelectedSourceId] = useState("");
   const router = useRouter();
   const {token} = useAuth();
+  const [log, setLog] = useState<HeadCountLog>();
+  const [status, setStatus] = useState<'Connecting' | 'Open' | 'Closed'>('Connecting');
+  const selectedSourceNameRef = useRef<string | null>(null);  
+  
+  useEffect(() => {
+    const socket = new WebSocket('ws://localhost:8080/ws');
+
+    socket.onopen = () => {
+      console.log('WebSocket Connected');
+      setStatus('Open');
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const newLog: HeadCountLog = JSON.parse(event.data);
+        
+        if (newLog.source_name === selectedSourceNameRef.current) {
+          setLog(newLog);
+          console.log("New Log Received:", newLog);
+        }
+      } catch (err) {
+        console.error('Failed to parse WS message:', err);
+      }
+    };
+
+    socket.onclose = () => {
+      setStatus('Closed');
+    };
+
+    return () => {
+      if (socket.readyState === WebSocket.CONNECTING || socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
+    };
+  }, []);
 
   async function fetchSources() {
     try {
@@ -32,8 +68,6 @@ export default function LiveViewPage() {
         const sourcesData = await response.json();
         setSources(sourcesData.sources);
         setSelectedSourceId(sourcesData.sources[0].id);
-      } else {
-        router.push("/sources");
       }
     } catch (error) {
       router.push("/sources");
@@ -49,21 +83,6 @@ export default function LiveViewPage() {
     
     fetchSources();
   }, [token, router]);
-
-  // useEffect(() => {
-  //   const syncSources = () => setSources(getLiveSources());
-
-  //   syncSources();
-
-  //   if(!sources){
-  //     router.push("/sources");
-  //     return;
-  //   }
-  //   const handleStorageChange = () => syncSources();
-  //   window.addEventListener("storage", handleStorageChange);
-
-  //   return () => window.removeEventListener("storage", handleStorageChange);
-  // }, []);
 
   const filteredSources = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -81,13 +100,17 @@ export default function LiveViewPage() {
   }, [searchQuery, sources]);
 
   const selectedSource = useMemo(() => {   
-    if (filteredSources.length === 0) {
+    if (!filteredSources || filteredSources.length === 0) {
       return null;
     }
     return filteredSources.find((source) => source.id === selectedSourceId) ?? filteredSources[0] ?? sources[0];
   }, [filteredSources, selectedSourceId]);
 
-  const hasMatches = filteredSources.length > 0;
+  useEffect(() => {
+    selectedSourceNameRef.current = selectedSource?.name || null;
+  }, [selectedSource]);
+
+  const hasMatches = filteredSources ? filteredSources.length > 0 : false;
 
   return (
     <AppShell title="Live View" variant="dashboard">
@@ -154,12 +177,11 @@ export default function LiveViewPage() {
               sizes="(max-width: 1200px) 100vw, 1200px"
               priority
             />
-
             <div className="absolute left-4 top-4 rounded-sm border border-white/10 bg-black/35 px-3 py-2 text-xs text-white shadow-sm backdrop-blur-sm">
               <div className="grid grid-cols-[auto_auto] gap-x-6 gap-y-1">
-                <span>Frame : XXX</span>
-                <span>FPS : XX</span>
-                <span className="col-span-2">Live Count : XXX</span>
+                <span>Frame : {log?.timestamp || "---"}</span>
+                <span>FPS : {log?.current_fps || "0.0"}</span>
+                <span className="col-span-2">Live Count : {log?.head_count ?? "0"}</span>
               </div>
             </div>
 

@@ -17,7 +17,6 @@ func NewService(q *db.Queries) *Service {
 
 func (s *Service) Add(ctx context.Context, req HeadCountLogAdd) (*db.HeadCountLog, error) {
 	sourceName, err := s.q.GetSourceNameByID(ctx, req.SourceID)
-	println(sourceName)
 	headCountLog, err := s.q.CreateHeadCountLog(ctx, db.CreateHeadCountLogParams{
 		SourceName: sourceName,
 		HeadCount:  req.HeadCount,

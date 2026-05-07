@@ -1,6 +1,7 @@
 package headCountLog
 
 import (
+	ws "gin-auth-supabase/src/websocket"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -8,10 +9,14 @@ import (
 
 type Handler struct {
 	svc *Service
+	hub *ws.WSHub
 }
 
-func NewHandler(svc *Service) *Handler {
-	return &Handler{svc: svc}
+func NewHandler(svc *Service, hub *ws.WSHub) *Handler {
+	return &Handler{
+		svc: svc,
+		hub: hub,
+	}
 }
 
 func (h *Handler) HandleAdd(c *gin.Context) {
@@ -26,6 +31,9 @@ func (h *Handler) HandleAdd(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	h.hub.Broadcast <- headCountLog
+
 	c.JSON(http.StatusCreated, headCountLog)
 }
 

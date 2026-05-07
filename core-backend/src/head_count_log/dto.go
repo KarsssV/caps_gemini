@@ -7,7 +7,7 @@ import (
 
 type HeadCountLogAdd struct {
 	SourceID   uuid.UUID        `json:"source_id" binding:"required"`
-	HeadCount  int32            `json:"head_count" binding:"required"`
+	HeadCount  int32            `json:"head_count"`
 	CurrentFps float64          `json:"current_fps" binding:"required"`
 	Timestamp  pgtype.Timestamp `json:"timestamp" binding:"required"`
 }

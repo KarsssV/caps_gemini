@@ -34,23 +34,3 @@ func HandleWS(hub *WSHub) gin.HandlerFunc {
 		}()
 	}
 }
-
-func ReceiveLogs(hub *WSHub) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		headCount := c.PostForm("head_count")
-		fps := c.PostForm("current_fps")
-		timestamp := c.PostForm("timestamp")
-
-		// Construct payload for the frontend
-		broadcastData := gin.H{
-			"head_count": headCount,
-			"fps":        fps,
-			"timestamp":  timestamp,
-		}
-
-		// 5. Send to WebSocket Hub
-		hub.Broadcast <- broadcastData
-
-		c.JSON(http.StatusOK, gin.H{"status": "Received and broadcasted"})
-	}
-}
