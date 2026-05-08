@@ -81,12 +81,12 @@ func main() {
 			authApi.POST("/login", authHandler.HandleLogin)
 		}
 
-		profileApi := Api.Group("/profile")
-		profileApi.Use(auth.AuthMiddleware())
-		{
-			profileApi.GET("", authHandler.HandleRequest)
-			profileApi.PUT("", authHandler.HandleUpdate)
-		}
+		// profileApi := Api.Group("/profile")
+		// profileApi.Use(auth.AuthMiddleware())
+		// {
+		// 	profileApi.GET("", authHandler.HandleRequest)
+		// 	profileApi.PUT("", authHandler.HandleUpdate)
+		// }
 
 		SourcesApi := Api.Group("/sources")
 		SourcesApi.GET("", SourcesHandler.HandleRequest)

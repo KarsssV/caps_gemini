@@ -90,12 +90,13 @@ func (s *Service) RequestNameByID(ctx context.Context, sourceId uuid.UUID) (*str
 
 func (s *Service) UpdateById(ctx context.Context, req SourceUpdate, sourceId uuid.UUID) (*db.Source, error) {
 	var newSource db.Source
-	err := s.store.ExecTx(ctx, func(q *db.Queries) error {
+	oldSource, err := s.q.GetSourceByID(ctx, sourceId)
+	if err != nil {
+		return nil, errors.New("Source not found")
+	}
+
+	err = s.store.ExecTx(ctx, func(q *db.Queries) error {
 		var err error
-		oldSource, err := s.q.GetSourceByID(ctx, sourceId)
-		if err != nil {
-			return err
-		}
 
 		newSource, err = s.q.UpdateSource(ctx, db.UpdateSourceParams{
 			ID:         sourceId,
