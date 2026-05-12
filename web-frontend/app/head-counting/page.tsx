@@ -51,26 +51,15 @@ export default function HeadCountingPage() {
             };
           });
           setRecords(recordData);
-          console.log(recordData)
           setSources([...new Set<string>(recordData.map((record : SnapshotRecord) => record.source_name))]);
         }
       }
-    } catch (error) {
-      router.push("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to get snapshots');
     } finally {
       setLoading(false);
     }
   }
-
-  // async function fetchSources() {
-  //   try {
-  //     setSources(records?.length ? [...new Set(records.map(item => item.source_name))] : []);
-  //   } catch (error) {
-  //     router.push("/");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // }
 
   useEffect(() => {
     if (!token) {

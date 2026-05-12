@@ -11,18 +11,6 @@ import {
   writeSourcesToStorage,
 } from "../../lib/sources";
 
-// type SourceType = "MP4" | "RTSP" | "Webcam" | "Youtube" | "Other";
-
-// type SourceItem = {
-//   id: string;
-//   name: string;
-//   type: SourceType;
-//   url: string;
-//   fps_target: string;
-//   resolution: string;
-//   status: boolean;
-// };
-
 export default function SourcesPage() {
   const [sources, setSources] = useState<SourceItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,11 +35,9 @@ export default function SourcesPage() {
       if (response.ok) {
         const sourcesData = await response.json();
         setSources(sourcesData ? sourcesData.sources : []);
-      } else {
-        router.push("/");
       }
-    } catch (error) {
-      router.push("/error");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to get sources');
     } finally {
       setLoading(false);
     }

@@ -7,6 +7,7 @@ import AppShell from "../../../components/app-shell";
 import { useRouter } from "next/navigation";
 import { readSourcesFromStorage, type SourceItem } from "../../../lib/sources";
 import { useAuth } from "../../../contexts/auth-context";
+import ImageWithFallback from "../../../components/image-with-fallback-src";
 
 type HeadCountLog = {
   id: number;
@@ -15,6 +16,7 @@ type HeadCountLog = {
   current_fps: string;
   timestamp: string;
 };
+
 export default function LiveViewPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sources, setSources] = useState<SourceItem[]>([]);
@@ -22,14 +24,14 @@ export default function LiveViewPage() {
   const router = useRouter();
   const {token} = useAuth();
   const [log, setLog] = useState<HeadCountLog>();
+  const [err, setError] = useState("");
   const [status, setStatus] = useState<'Connecting' | 'Open' | 'Closed'>('Connecting');
-  const selectedSourceNameRef = useRef<string | null>(null);  
+  const selectedSourceNameRef = useRef<string | null>(null);
   
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:8080/ws');
 
     socket.onopen = () => {
-      console.log('WebSocket Connected');
       setStatus('Open');
     };
 
@@ -69,8 +71,8 @@ export default function LiveViewPage() {
         setSources(sourcesData.sources);
         setSelectedSourceId(sourcesData.sources[0].id);
       }
-    } catch (error) {
-      router.push("/sources");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to get live view');
     } finally {
     }
   }
@@ -169,13 +171,13 @@ export default function LiveViewPage() {
           </div>
 
           <div className="relative min-h-104 w-full flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[#213d2e]">
-            <Image
-              src={selectedSource ? `http://localhost:8000/camera/stream/${selectedSource.id}` : "/surveillance.svg"}
-              alt="CCTV camera placeholder"
+            <ImageWithFallback
+              src={ selectedSource ? `http://localhost:8000/camera/stream/${selectedSource.id}` : '/surveillance.svg'}
+              alt=""
+              fallbackSrc="/surveillance.svg"
               fill
               className="object-cover"
               sizes="(max-width: 1200px) 100vw, 1200px"
-              priority
             />
             <div className="absolute left-4 top-4 rounded-sm border border-white/10 bg-black/35 px-3 py-2 text-xs text-white shadow-sm backdrop-blur-sm">
               <div className="grid grid-cols-[auto_auto] gap-x-6 gap-y-1">

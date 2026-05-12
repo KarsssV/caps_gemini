@@ -178,6 +178,12 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
 
   const [errors, setErrors] = useState<FormErrors>({});
 
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
@@ -218,22 +224,22 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
       if (isSignup) { 
         try {
           await register(formData.first_name, formData.last_name, formData.email, formData.username, formData.password);
+          router.push("/login");
         } catch (err) {
           setError(/*err instanceof Error ? err.message : */'Registration failed');
           return;
         } finally {
           setLoading(false);
-          router.push("/login");
         }
       } else {
         try {
           await login(formData.email_username, formData.password);
+          router.push("/");
         } catch (err) {
           setError(/*err instanceof Error ? err.message : */'Login failed');
           return;
         } finally {
           setLoading(false);
-          router.push("/");
         }
       }
     } else {
