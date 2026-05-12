@@ -1,8 +1,6 @@
 package auditLog
 
-import (
-	"encoding/json"
-)
+import "encoding/json"
 
 type AuditLogAdd struct {
 	Action    string          `json:"details" binding:"required"`

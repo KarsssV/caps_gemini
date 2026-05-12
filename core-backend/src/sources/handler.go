@@ -239,6 +239,14 @@ func (h *Handler) HandleDeleteById(c *gin.Context) {
 		return
 	}
 
+	jsonReq, err := json.Marshal("")
+	resp, err := http.Post(os.Getenv("BE_AI_URL")+"/probe/remove/"+c.Param("id"), "application/json", bytes.NewBuffer(jsonReq))
+	if err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Probe service unreachable"})
+		return
+	}
+	defer resp.Body.Close()
+
 	var req SourceDelete
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -248,6 +256,7 @@ func (h *Handler) HandleDeleteById(c *gin.Context) {
 	source, err := h.svc.DeleteById(c.Request.Context(), sourceId, req.UserID)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		println(err.Error())
 		return
 	}
 

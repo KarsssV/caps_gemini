@@ -50,7 +50,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       body: JSON.stringify({ email_username, password }),
     });
 
-    if (!response.ok) {
+    if (!response.ok || response.status === 401) {
       const error = await response.text();
       throw new Error(error || 'Login failed');
     }

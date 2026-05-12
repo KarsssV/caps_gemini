@@ -176,6 +176,7 @@ export default function SourcesPage() {
       const response = await fetch(`http://localhost:8080/api/sources/${sourceId}`, {
         method: "DELETE",
         headers: {
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({user_id: userId})
