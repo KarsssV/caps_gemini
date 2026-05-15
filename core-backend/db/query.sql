@@ -127,3 +127,16 @@ SELECT * FROM audit_logs;
 
 -- name: GetAuditLogsByUser :many
 SELECT * FROM audit_logs WHERE user_id = $1;
+
+-- name: CreateForgotPasswordToken :one
+INSERT INTO token_forgot_password (
+    user_id
+) VALUES (
+    $1
+)
+RETURNING *;
+
+-- name: GetForgotPasswordToken :one
+SELECT * FROM token_forgot_password
+WHERE token = $1
+LIMIT 1;

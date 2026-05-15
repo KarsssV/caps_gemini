@@ -138,6 +138,13 @@ type Source struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
+type TokenForgotPassword struct {
+	Token   uuid.UUID          `json:"token"`
+	UserID  uuid.UUID          `json:"user_id"`
+	Used    bool               `json:"used"`
+	Expired pgtype.Timestamptz `json:"expired"`
+}
+
 type User struct {
 	ID        uuid.UUID `json:"id"`
 	Username  string    `json:"username"`

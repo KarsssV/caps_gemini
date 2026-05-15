@@ -24,3 +24,11 @@ type AuthResponse struct {
 	Token string `json:"token"`
 	User  any    `json:"user"`
 }
+
+type ForgotPasswordRequest struct {
+	Email string `json:"email"`
+}
+
+type VerifyForgotPasswordTokenRequest struct {
+	Token string `json:"token"`
+}
