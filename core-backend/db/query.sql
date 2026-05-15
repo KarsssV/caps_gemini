@@ -52,6 +52,13 @@ SET
 WHERE id = $1
 RETURNING *;
 
+-- name: UpdateSourceStatus :one
+UPDATE sources
+SET
+    status = $2
+WHERE id = $1
+RETURNING *;
+
 -- name: DeleteSource :one
 DELETE FROM sources WHERE id = $1
 RETURNING *;

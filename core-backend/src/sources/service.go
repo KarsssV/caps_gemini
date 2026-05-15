@@ -148,3 +148,16 @@ func (s *Service) DeleteById(ctx context.Context, sourceId uuid.UUID, userId uui
 
 	return &source, err
 }
+
+func (s *Service) UpdateStatusById(ctx context.Context, status bool, sourceId uuid.UUID) (*db.Source, error) {
+	newSource, err := s.q.UpdateSourceStatus(ctx, db.UpdateSourceStatusParams{
+		ID:     sourceId,
+		Status: status,
+	})
+	println(status)
+	if err != nil {
+		return nil, err
+	}
+
+	return &newSource, err
+}

@@ -262,3 +262,25 @@ func (h *Handler) HandleDeleteById(c *gin.Context) {
 
 	c.JSON(http.StatusOK, source)
 }
+
+func (h *Handler) HandleStatusUpdateById(c *gin.Context) {
+	sourceId, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var req SourceStatusUpdate
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	source, err := h.svc.UpdateStatusById(c.Request.Context(), *req.Status, sourceId)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, source)
+}

@@ -31,6 +31,7 @@ type Querier interface {
 	GetUserByEmailUsername(ctx context.Context, username string) (User, error)
 	GetUserById(ctx context.Context, id uuid.UUID) (User, error)
 	UpdateSource(ctx context.Context, arg UpdateSourceParams) (Source, error)
+	UpdateSourceStatus(ctx context.Context, arg UpdateSourceStatusParams) (Source, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 

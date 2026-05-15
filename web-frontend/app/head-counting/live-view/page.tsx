@@ -17,16 +17,23 @@ type HeadCountLog = {
   timestamp: string;
 };
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const initialSourceItem: SourceItem = {id: "0", name: "No Source Chosen", type: "Other", url: "", fps_target: "", resolution: "...", status: false}
+
 export default function LiveViewPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [sources, setSources] = useState<SourceItem[]>([]);
-  const [selectedSourceId, setSelectedSourceId] = useState("");
+  const [sources, setSources] = useState<SourceItem[]>([initialSourceItem]);
+  const [selectedSourceId, setSelectedSourceId] = useState("0");
   const router = useRouter();
   const {token} = useAuth();
   const [log, setLog] = useState<HeadCountLog>();
   const [err, setError] = useState("");
+  const [streamErr, setStreamError] = useState(false);
   const [status, setStatus] = useState<'Connecting' | 'Open' | 'Closed'>('Connecting');
   const selectedSourceNameRef = useRef<string | null>(null);
+  const streamErrRef = useRef(false);
+  const selectedSourceIdRef = useRef(selectedSourceId);
+  const tokenRef = useRef(token);
   
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:8080/ws');
@@ -41,7 +48,12 @@ export default function LiveViewPage() {
         
         if (newLog.source_name === selectedSourceNameRef.current) {
           setLog(newLog);
-          console.log("New Log Received:", newLog);
+
+          if (streamErrRef.current === true) {
+            console.log("Stream recovered! Updating source status...");
+            setStreamError(false);
+            UpdateSource(true); 
+          }
         }
       } catch (err) {
         console.error('Failed to parse WS message:', err);
@@ -68,14 +80,34 @@ export default function LiveViewPage() {
       });
       if (response.ok) {
         const sourcesData = await response.json();
-        setSources(sourcesData.sources);
-        setSelectedSourceId(sourcesData.sources[0].id);
+        setSources([initialSourceItem, ...sourcesData.sources]);
+        setSelectedSourceId("0");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to get live view');
     } finally {
     }
   }
+
+  const UpdateSource = async (targetStatus: boolean) => {
+    if (selectedSourceIdRef.current !== "0" && tokenRef.current) {
+      try {
+        const response = await fetch(`http://localhost:8080/api/sources/status/${selectedSourceIdRef.current}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${tokenRef.current}`,
+          },
+          body: JSON.stringify({ status: targetStatus }),
+        });
+        
+        if (!response.ok) throw new Error('Failed to update source');
+        console.log(`Source ${selectedSourceIdRef.current} status updated to: ${targetStatus}`);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Update failed');
+      }
+    }
+  };
 
   useEffect(() => {
     if (!token) {
@@ -100,17 +132,25 @@ export default function LiveViewPage() {
       );
     });
   }, [searchQuery, sources]);
-
+  
   const selectedSource = useMemo(() => {   
-    if (!filteredSources || filteredSources.length === 0) {
-      return null;
-    }
-    return filteredSources.find((source) => source.id === selectedSourceId) ?? filteredSources[0] ?? sources[0];
+    return filteredSources.find((s) => s.id === selectedSourceId) || filteredSources[0] || sources[0];
   }, [filteredSources, selectedSourceId]);
 
   useEffect(() => {
     selectedSourceNameRef.current = selectedSource?.name || null;
-  }, [selectedSource]);
+    streamErrRef.current = streamErr;
+    selectedSourceIdRef.current = selectedSourceId;
+    tokenRef.current = token;
+  }, [selectedSource, streamErr, selectedSourceId, token]);
+
+  useEffect(() => {
+    if (selectedSourceId && selectedSourceId !== "0") {
+      setLog(undefined);
+      setStreamError(true);
+      UpdateSource(false);
+    }
+  }, [selectedSourceId]);
 
   const hasMatches = filteredSources ? filteredSources.length > 0 : false;
 
@@ -164,17 +204,21 @@ export default function LiveViewPage() {
                 <span> · {selectedSource?.url}</span>
               </p>
             </div>
-
-            <span className="rounded-full border border-[#e2c15d]/50 bg-[#e2c15d]/15 px-3 py-1 text-xs font-medium tracking-[0.2em] text-white">
-              LIVE
-            </span>
           </div>
 
           <div className="relative min-h-104 w-full flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[#213d2e]">
-            <ImageWithFallback
+            {/* <ImageWithFallback
               src={ selectedSource ? `http://localhost:8000/camera/stream/${selectedSource.id}` : '/surveillance.svg'}
               alt=""
               fallbackSrc="/surveillance.svg"
+              fill
+              className="object-cover"
+              sizes="(max-width: 1200px) 100vw, 1200px"
+            /> */}
+            <Image
+              alt=""
+              onError={() => setStreamError(true)}
+              src={ streamErr || !selectedSource ? '/surveillance.svg' : `http://localhost:8000/camera/stream/${selectedSource.id}` }
               fill
               className="object-cover"
               sizes="(max-width: 1200px) 100vw, 1200px"
@@ -193,7 +237,7 @@ export default function LiveViewPage() {
             </div>
 
             <div className="absolute bottom-4 right-4 rounded-full bg-black/70 px-3 py-1 text-xs font-medium tracking-[0.2em] text-white">
-              STREAMING
+              { streamErr ? "INACTIVE" : "STREAMING" }
             </div>
           </div>
         </section>

@@ -114,12 +114,18 @@ export default function SourcesPage() {
           body: JSON.stringify({name, type, url, user_id: userId}),
         });
 
-        if (!response.ok) {
+        if(response.status === 400){
+          setError('Missing or invalid parameters');
+        } else if(response.status === 503){
+          setError('AI service unavailable');
+        } else if(response.status === 500){
+          setError('Source update failed in server');
+        } else if (!response.ok) {
           const error = await response.text();
-          throw new Error(error || 'Source registration failed');
+          throw new Error(error || 'Source update failed');
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Registration failed');
+        // setError(err instanceof Error ? err.message : 'Registration failed');
         return;
       } finally {
         setLoading(false);
@@ -135,12 +141,18 @@ export default function SourcesPage() {
           body: JSON.stringify({name, type, url, user_id: userId}),
         });
 
-        if (!response.ok) {
+        if(response.status === 400){
+          setError('Missing or invalid parameters');
+        } else if(response.status === 503){
+          setError('AI service unavailable');
+        } else if(response.status === 500){
+          setError('Source update failed in server');
+        } else if (!response.ok) {
           const error = await response.text();
           throw new Error(error || 'Source update failed');
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Update failed');
+        // setError(err instanceof Error ? err.message : 'Update failed');
         return;
       } finally {
         setLoading(false);
@@ -171,6 +183,7 @@ export default function SourcesPage() {
       if (response.ok) {
         fetchSources();
       } else if (response.status === 401) {
+        setError("Please login to delete sources");
         alert("Please login to delete sources");
         router.push("/login");
       } else {

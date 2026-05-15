@@ -50,7 +50,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       body: JSON.stringify({ email_username, password }),
     });
 
-    if (!response.ok || response.status === 401) {
+    if( response.status === 401){
+      throw new Error('Wrong credentials');
+    } else if (response.status === 500 ) {
+      const error = await response.text();
+      throw new Error('Server error');
+    } else if (!response.ok) {
       const error = await response.text();
       throw new Error(error || 'Login failed');
     }
@@ -73,7 +78,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       body: JSON.stringify({first_name, last_name, email, username, password}),
     });
 
-    if (!response.ok) {
+    
+    if( response.status === 400){
+      throw new Error('Missing parameters');
+    } else if (response.status === 500 ) {
+      const error = await response.text();
+      throw new Error('Username/Email already exists');
+    } else if (!response.ok) {
       const error = await response.text();
       throw new Error(error || 'Registration failed');
     }

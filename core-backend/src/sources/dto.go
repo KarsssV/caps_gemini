@@ -23,6 +23,10 @@ type SourceUpdate struct {
 	UserID     uuid.UUID `json:"user_id"`
 }
 
+type SourceStatusUpdate struct {
+	Status *bool `json:"status"`
+}
+
 type SourcesResponse struct {
 	Sources any `json:"sources"`
 }

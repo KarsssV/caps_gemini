@@ -95,6 +95,7 @@ func main() {
 			SourcesApi.POST("", SourcesHandler.HandleAdd)
 			SourcesApi.GET("/:id", SourcesHandler.HandleRequestById)
 			SourcesApi.PUT("/:id", SourcesHandler.HandleUpdateById)
+			SourcesApi.PUT("/status/:id", SourcesHandler.HandleStatusUpdateById)
 			SourcesApi.DELETE("/:id", SourcesHandler.HandleDeleteById)
 		}
 

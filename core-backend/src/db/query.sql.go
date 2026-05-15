@@ -583,6 +583,35 @@ func (q *Queries) UpdateSource(ctx context.Context, arg UpdateSourceParams) (Sou
 	return i, err
 }
 
+const updateSourceStatus = `-- name: UpdateSourceStatus :one
+UPDATE sources
+SET
+    status = $2
+WHERE id = $1
+RETURNING id, name, type, url, fps_target, resolution, status, created_at
+`
+
+type UpdateSourceStatusParams struct {
+	ID     uuid.UUID `json:"id"`
+	Status bool      `json:"status"`
+}
+
+func (q *Queries) UpdateSourceStatus(ctx context.Context, arg UpdateSourceStatusParams) (Source, error) {
+	row := q.db.QueryRow(ctx, updateSourceStatus, arg.ID, arg.Status)
+	var i Source
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Type,
+		&i.Url,
+		&i.FpsTarget,
+		&i.Resolution,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET
