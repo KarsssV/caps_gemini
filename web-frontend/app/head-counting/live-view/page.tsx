@@ -18,7 +18,7 @@ function getLiveSources(): LiveSource[] {
 
   return storedSources.map((source) => {
     const baseCount = source.name === "Gate Utama" ? 12 : source.name === "Warehouse North" ? 8 : 6;
-    const baseFps = source.frameRate.startsWith("24") ? 24 : source.frameRate.startsWith("30") ? 30 : 25;
+    const baseFps = source.frameRate?.startsWith("24") ? 24 : source.frameRate?.startsWith("30") ? 30 : 25;
 
     return {
       ...source,
@@ -66,7 +66,7 @@ export default function LiveViewPage() {
     return sources.filter((source) => {
       return (
         source.name.toLowerCase().includes(query) ||
-        source.sourceType.toLowerCase().includes(query) ||
+        (source.type || "").toLowerCase().includes(query) ||
         source.endpoint.toLowerCase().includes(query)
       );
     });
@@ -163,7 +163,7 @@ export default function LiveViewPage() {
             </div>
 
             <div className="absolute bottom-4 left-4 rounded-sm border border-white/10 bg-black/30 px-3 py-2 text-xs text-white shadow-sm backdrop-blur-sm">
-              <p className="font-medium">{selectedSource.sourceType}</p>
+              <p className="font-medium">{selectedSource.type}</p>
               <p>{selectedSource.resolution}</p>
             </div>
 
