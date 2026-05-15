@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import AppShell from "../../../components/app-shell";
 import { initialSources, readSourcesFromStorage, type SourceItem } from "../../../lib/sources";
@@ -29,9 +30,20 @@ function getLiveSources(): LiveSource[] {
 }
 
 export default function LiveViewPage() {
+  const searchParams = useSearchParams();
+  const sourceIdParam = searchParams.get("sourceId");
   const [searchQuery, setSearchQuery] = useState("");
   const [sources, setSources] = useState<LiveSource[]>(() => getLiveSources());
-  const [selectedSourceId, setSelectedSourceId] = useState(() => getLiveSources()[0]?.id ?? 0);
+  const [selectedSourceId, setSelectedSourceId] = useState(() => {
+    if (sourceIdParam) {
+      const paramId = parseInt(sourceIdParam, 10);
+      const sources = getLiveSources();
+      if (sources.some((s) => s.id === paramId)) {
+        return paramId;
+      }
+    }
+    return getLiveSources()[0]?.id ?? 0;
+  });
 
   useEffect(() => {
     const syncSources = () => setSources(getLiveSources());

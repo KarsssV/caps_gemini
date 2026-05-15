@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import AppShell from "../../components/app-shell";
 import {
@@ -17,6 +18,7 @@ export default function SourcesPage() {
   const [name, setName] = useState("");
   const [type, setType] = useState<SourceType>("CCTV");
   const [url, setUrl] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ id: number; name: string } | null>(null);
 
   useEffect(() => {
     const storedSources = readSourcesFromStorage();
@@ -48,6 +50,17 @@ export default function SourcesPage() {
     setName("");
     setType("CCTV");
     setUrl("");
+  }
+
+  function handleDeleteClick(id: number, sourceName: string) {
+    setDeleteConfirmation({ id, name: sourceName });
+  }
+
+  function confirmDelete() {
+    if (deleteConfirmation) {
+      setSources((currentSources) => currentSources.filter((source) => source.id !== deleteConfirmation.id));
+      setDeleteConfirmation(null);
+    }
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -134,13 +147,20 @@ export default function SourcesPage() {
                       </td>
                       <td className="border border-[#2f8e4c]/40 px-3 py-3 text-center">
                         <div className="flex items-center justify-center gap-2 text-xs">
-                          <button type="button" className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10">
+                          <Link
+                            href={`/head-counting/live-view?sourceId=${source.id}`}
+                            className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10"
+                          >
                             View
-                          </button>
+                          </Link>
                           <button type="button" className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10">
                             Edit
                           </button>
-                          <button type="button" className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteClick(source.id, source.name)}
+                            className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10"
+                          >
                             Delete
                           </button>
                         </div>
@@ -215,6 +235,34 @@ export default function SourcesPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      ) : null}
+
+      {deleteConfirmation ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-md rounded-sm border border-[#2f8e4c]/60 bg-[#0f4b2b] p-5 shadow-[0_18px_42px_rgba(0,0,0,0.5)]">
+            <h2 className="text-lg font-semibold text-white/95">Delete Source?</h2>
+            <p className="mt-3 text-sm text-white/75">
+              Are you sure you want to delete "<span className="font-medium text-white">{deleteConfirmation.name}</span>"? This action cannot be undone.
+            </p>
+
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmation(null)}
+                className="h-10 rounded-sm border border-white/30 px-4 text-sm text-white/80 transition hover:bg-white/10"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="h-10 rounded-sm border border-red-600/70 bg-red-600/25 px-4 text-sm font-medium text-red-300 transition hover:bg-red-600/40"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
