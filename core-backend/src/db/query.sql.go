@@ -689,3 +689,30 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 	)
 	return i, err
 }
+
+const updateUserPassword = `-- name: UpdateUserPassword :exec
+UPDATE users
+SET password = $1
+WHERE email = $2
+`
+
+type UpdateUserPasswordParams struct {
+	Password string `json:"password"`
+	Email    string `json:"email"`
+}
+
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.Exec(ctx, updateUserPassword, arg.Password, arg.Email)
+	return err
+}
+
+const useForgotPasswordToken = `-- name: UseForgotPasswordToken :exec
+UPDATE token_forgot_password
+SET used = true
+WHERE token = $1
+`
+
+func (q *Queries) UseForgotPasswordToken(ctx context.Context, token uuid.UUID) error {
+	_, err := q.db.Exec(ctx, useForgotPasswordToken, token)
+	return err
+}

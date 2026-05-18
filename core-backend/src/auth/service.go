@@ -84,8 +84,8 @@ func (s *Service) Request(ctx context.Context, userId uuid.UUID) (*db.User, erro
 	return &user, nil
 }
 
-func (s *Service) VerifyForgotPasswordToken(ctx context.Context, token string) error {
-	tokenUUID := uuid.MustParse(token)
+func (s *Service) VerifyForgotPasswordToken(ctx context.Context, req VerifyForgotPasswordTokenRequest) error {
+	tokenUUID := uuid.MustParse(req.Token)
 	tokenStat, err := s.q.GetForgotPasswordToken(ctx, tokenUUID)
 	if err != nil {
 		return ErrTokenNotFound
@@ -96,6 +96,28 @@ func (s *Service) VerifyForgotPasswordToken(ctx context.Context, token string) e
 	if tokenStat.Expired.Time.After(time.Now()) {
 		return ErrTokenExpired
 	}
+
+	user, err := s.q.GetUserById(ctx, tokenStat.UserID)
+	if err != nil {
+		return errors.New("cannot get user email")
+	}
+
+	hashedPass, _ := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+
+	err = s.q.UpdateUserPassword(ctx, db.UpdateUserPasswordParams{
+		Password: string(hashedPass),
+		Email:    user.Email,
+	})
+
+	if err != nil {
+		return errors.New("failed to change password")
+	}
+
+	err = s.q.UseForgotPasswordToken(ctx, uuid.MustParse(req.Token))
+	if err != nil {
+		return errors.New("status token unchange")
+	}
+
 	return nil
 }
 

@@ -26,6 +26,11 @@ SELECT * FROM users WHERE username = $1 OR email = $1;
 -- name: GetUserById :one
 SELECT * FROM users WHERE Id = $1;
 
+-- name: UpdateUserPassword :exec
+UPDATE users
+SET password = $1
+WHERE email = $2;
+
 -- name: CreateSource :one
 INSERT INTO sources (
     id,
@@ -135,6 +140,11 @@ INSERT INTO token_forgot_password (
     $1
 )
 RETURNING *;
+
+-- name: UseForgotPasswordToken :exec
+UPDATE token_forgot_password
+SET used = true
+WHERE token = $1;
 
 -- name: GetForgotPasswordToken :one
 SELECT * FROM token_forgot_password

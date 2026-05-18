@@ -35,6 +35,8 @@ type Querier interface {
 	UpdateSource(ctx context.Context, arg UpdateSourceParams) (Source, error)
 	UpdateSourceStatus(ctx context.Context, arg UpdateSourceStatusParams) (Source, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
+	UseForgotPasswordToken(ctx context.Context, token uuid.UUID) error
 }
 
 var _ Querier = (*Queries)(nil)

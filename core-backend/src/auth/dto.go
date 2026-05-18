@@ -30,5 +30,6 @@ type ForgotPasswordRequest struct {
 }
 
 type VerifyForgotPasswordTokenRequest struct {
-	Token string `json:"token"`
+	Token       string `json:"token"`
+	NewPassword string `json:"new_password"`
 }

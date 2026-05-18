@@ -96,7 +96,7 @@ func (h *Handler) VerifyForgotPasswordToken(c *gin.Context) {
 		return
 	}
 
-	err := h.svc.VerifyForgotPasswordToken(c, req.Token)
+	err := h.svc.VerifyForgotPasswordToken(c, req)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrTokenNotFound):
@@ -112,7 +112,7 @@ func (h *Handler) VerifyForgotPasswordToken(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "token verified",
+		"message": "token verified, password change",
 	})
 }
 
