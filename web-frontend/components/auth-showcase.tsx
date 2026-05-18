@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from '../contexts/auth-context';
 
 type AuthShowcaseProps = {
-  variant: "signup" | "login";
+  variant: "signup" | "login" | "forgot-password";
 };
 
 type FieldConfig = {
@@ -78,6 +78,17 @@ const loginFields: FieldConfig[] = [
     fullWidth: true,
     hasIcon: true,
     validate: (val) => (val.length < 8 ? "Password must be at least 8 characters" : null)
+  },
+];
+
+const forgotPasswordFields: FieldConfig[] = [
+  {
+    name: "email",
+    required: true,
+    label: "Email address",
+    type: "email",
+    fullWidth: true,
+    validate: (val) => (!val.includes("@") ? "Invalid email address" : null)
   },
 ];
 
@@ -165,14 +176,16 @@ interface FormData {
 export default function AuthShowcase({ variant }: AuthShowcaseProps) {
   const router = useRouter();
   const isSignup = variant === "signup";
-  const fields = isSignup ? signupFields : loginFields;
+  const isForgotPassword = variant === "forgot-password";
+  const fields = isSignup ? signupFields : isForgotPassword ? forgotPasswordFields : loginFields;
   const [imageIndex, setImageIndex] = useState(0);
   const [isFading, setIsFading] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({});
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const {user, token, login, register } = useAuth();
+  const {user, login, register } = useAuth();
+  const [successMessage, setSuccessMessage] = useState('')
 
   type FormErrors = Record<string, string | null>;
 
@@ -218,6 +231,7 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccessMessage('');
 
     if (validateForm()) {
       console.log("Form is valid! Sending to API...", formData);
@@ -231,12 +245,22 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
         } finally {
           setLoading(false);
         }
+      } else if (isForgotPassword) {
+        try {
+          // For now, just show a success message since no backend is needed
+          setSuccessMessage(`Password reset link has been sent to ${formData.email}`);
+          setFormData({});
+          setLoading(false);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to send reset link');
+          setLoading(false);
+        }
       } else {
         try {
           await login(formData.email_username, formData.password);
           router.push("/");
         } catch (err) {
-          setError(/*err instanceof Error ? err.message : */'Login failed');
+          setError('Incorrect email or password');
           return;
         } finally {
           setLoading(false);
@@ -264,7 +288,7 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#424242_0%,#2c2c2c_30%,#212121_100%)] px-4 py-4 text-white">
       <div className="mx-auto h-245.5 w-full max-w-378">
         <p className="mb-4 text-[32px] font-medium tracking-tight text-white/65">
-          {isSignup ? "Sign up" : "Log in"}
+          {isSignup ? "Sign up" : isForgotPassword ? "Reset password" : "Log in"}
         </p>
 
         <section
@@ -283,21 +307,37 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
           <div className="flex items-center px-6 py-10 md:px-10 lg:px-16 lg:py-14">
             <div className="mx-auto w-full max-w-125">
               <h1 className="text-4xl font-medium tracking-tight text-white sm:text-5xl lg:text-[58px]">
-                {isSignup ? "Create an account" : "Welcome back"}
+                {isSignup ? "Create an account" : isForgotPassword ? "Reset Password" : "Welcome back"}
               </h1>
               <p className="mt-5 text-xl text-white/88">
-                {isSignup ? "Already have an account?" : "Need an account?"}{" "}
+                {isSignup 
+                  ? "Already have an account?" 
+                  : isForgotPassword 
+                  ? "Remember your password?" 
+                  : "Need an account?"
+                }{" "}
                 <Link
-                  href={isSignup ? "/login" : "/signup"}
+                  href={isSignup ? "/login" : isForgotPassword ? "/login" : "/signup"}
                   className="text-sky-300 underline underline-offset-4 transition hover:text-sky-200"
                 >
-                  {isSignup ? "Log in" : "Sign up"}
+                  {isSignup 
+                    ? "Log in" 
+                    : isForgotPassword 
+                    ? "Log in" 
+                    : "Sign up"
+                  }
                 </Link>
               </p>
 
               {error && (
                 <div className="alert alert-danger" role="alert">
                   {error}
+                </div>
+              )}
+
+              {successMessage && (
+                <div className="rounded-sm border border-green-500/40 bg-green-500/10 p-3 text-sm text-green-300" role="alert">
+                  {successMessage}
                 </div>
               )}
 
@@ -340,6 +380,10 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
                       </Link>
                     </span>
                   </label>
+                ) : isForgotPassword ? (
+                  <p className="text-sm text-white/75">
+                    Enter your email address and we'll send you a link to reset your password.
+                  </p>
                 ) : (
                   <div className="flex items-center justify-between gap-4 text-sm text-white/85">
                     <label className="flex items-center gap-3">
@@ -349,7 +393,7 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
                       />
                       <span>Remember me</span>
                     </label>
-                    <Link href="/" className="text-sky-300 underline underline-offset-4 hover:text-sky-200">
+                    <Link href="/forgot-password" className="text-sky-300 underline underline-offset-4 hover:text-sky-200">
                       Forgot password?
                     </Link>
                   </div>
@@ -359,7 +403,7 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
                   type="submit"
                   className="mt-2 h-14 w-full rounded-xl bg-[#e2c15d] text-2xl font-medium text-[#8b6b12] shadow-[0_12px_26px_rgba(115,90,12,0.28)] transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-[#f5dc8e] focus:ring-offset-2 focus:ring-offset-transparent"
                 >
-                  {isSignup ? "Create Account" : "Log In"}
+                  {isSignup ? "Create Account" : isForgotPassword ? "Send Reset Link" : "Log In"}
                 </button>
               </form>
             </div>
