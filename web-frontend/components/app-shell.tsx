@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import AccountSettingsModal from "./account-settings-modal";
 
@@ -19,10 +19,31 @@ const navItems = [
   { href: "/head-counting/live-view", label: "Live View", icon: "/window.svg" },
 ] as const;
 
+const POPUP_BLOCKER_NOTICE_KEY = "popup-blocker-notice-dismissed";
+
 export default function AppShell({ title, children, variant = "default" }: AppShellProps) {
   const pathname = usePathname();
   const isDashboard = variant === "dashboard";
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isPopupNoticeOpen, setIsPopupNoticeOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      setIsPopupNoticeOpen(window.localStorage.getItem(POPUP_BLOCKER_NOTICE_KEY) !== "dismissed");
+    } catch {
+      setIsPopupNoticeOpen(true);
+    }
+  }, []);
+
+  function handleClosePopupNotice() {
+    try {
+      window.localStorage.setItem(POPUP_BLOCKER_NOTICE_KEY, "dismissed");
+    } catch {
+      // Ignore storage failures and still close the notice.
+    }
+
+    setIsPopupNoticeOpen(false);
+  }
 
   return (
     <main className={`min-h-screen p-4 text-white ${isDashboard ? "bg-[#303030]" : "bg-[#2a2a2a]"}`}>
@@ -81,6 +102,28 @@ export default function AppShell({ title, children, variant = "default" }: AppSh
           {children}
         </div>
       </section>
+
+      {isPopupNoticeOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 py-6 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-white/15 bg-[#16492b] p-5 text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+            <p className="text-xs uppercase tracking-[0.25em] text-white/60">Notice</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight">Turn off pop-up blockers</h2>
+            <p className="mt-3 text-sm leading-6 text-white/80">
+              This page may need pop-ups to open correctly. Please allow pop-ups for this site, then continue using the page.
+            </p>
+
+            <div className="mt-5 flex justify-end">
+              <button
+                type="button"
+                onClick={handleClosePopupNotice}
+                className="h-10 rounded-full border border-white/20 bg-white/15 px-5 text-sm font-medium text-white transition hover:bg-white/25"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <AccountSettingsModal isOpen={isAccountModalOpen} onClose={() => setIsAccountModalOpen(false)} />
     </main>
