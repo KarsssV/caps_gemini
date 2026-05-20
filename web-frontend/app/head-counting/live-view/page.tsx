@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import AppShell from "../../../components/app-shell";
 import { useRouter } from "next/navigation";
 import { readSourcesFromStorage, type SourceItem } from "../../../lib/sources";
@@ -21,6 +22,8 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const initialSourceItem: SourceItem = {id: "0", name: "No Source Chosen", type: "Other", url: "", fps_target: "", resolution: "...", status: false}
 
 export default function LiveViewPage() {
+  const searchParams = useSearchParams();
+  const sourceIdParam = searchParams.get("sourceId");
   const [searchQuery, setSearchQuery] = useState("");
   const [sources, setSources] = useState<SourceItem[]>([initialSourceItem]);
   const [selectedSourceId, setSelectedSourceId] = useState("0");

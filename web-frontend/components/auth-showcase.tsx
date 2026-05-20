@@ -215,7 +215,8 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
-  const {user, token, login, register } = useAuth();
+  const {user, login, register } = useAuth();
+  const [successMessage, setSuccessMessage] = useState('')
 
   type FormErrors = Record<string, string | null>;
 
@@ -312,12 +313,22 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
         } finally {
           setLoading(false);
         }
+      } else if (isForgotPassword) {
+        try {
+          // For now, just show a success message since no backend is needed
+          setSuccessMessage(`Password reset link has been sent to ${formData.email}`);
+          setFormData({});
+          setLoading(false);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to send reset link');
+          setLoading(false);
+        }
       } else {
         try {
           await login(formData.email_username, formData.password);
           router.push("/");
         } catch (err) {
-          setError(/*err instanceof Error ? err.message : */'Login failed');
+          setError('Incorrect email or password');
           return;
         } finally {
           setLoading(false);

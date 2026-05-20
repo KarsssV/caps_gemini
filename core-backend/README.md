@@ -9,7 +9,7 @@
 
 ## How to run
 ### Run
-`make run` or `go run main.go`
+`go run main.go`
 
 ### Development
 `make generate` or `sqlc generate` to generate the db files
