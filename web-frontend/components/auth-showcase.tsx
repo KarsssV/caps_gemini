@@ -210,6 +210,8 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
   const fields = fieldMap[variant];
   const [imageIndex, setImageIndex] = useState(0);
   const [isFading, setIsFading] = useState(false);
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+
 
   const [formData, setFormData] = useState<FormData>({});
   const [error, setError] = useState('')
@@ -235,7 +237,14 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
       ...prev,
       [name]: value,
     }));
-  };  
+  };
+
+  const togglePasswordVisibility = (fieldName: string) => {
+    setVisiblePasswords((current) => ({
+      ...current,
+      [fieldName]: !current[fieldName],
+    }));
+  };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -424,14 +433,24 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
                       <div className="flex h-13 items-center rounded-md border border-emerald-950/40 bg-[#0f4b2b]/80 px-4 text-white/65 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition focus-within:border-emerald-300/60 focus-within:text-white">
                         <input
                           name={field.name}
-                          type={field.type}
+                          type={field.hasIcon && visiblePasswords[field.name] ? "text" : field.type}
                           placeholder={field.label}
                           className="w-full bg-transparent text-lg outline-none placeholder:text-white/28"
                           value={formData[field.name] || ""}
                           onChange={handleChange}
                           required={field.required}
                         />
-                        {field.hasIcon ? <span className="ml-3 text-white/28"><EyeIcon /></span> : null}
+                        {field.hasIcon ? (
+                          <button
+                            type="button"
+                            onClick={() => togglePasswordVisibility(field.name)}
+                            className="ml-3 text-white/28 transition hover:text-white/70 focus:outline-none focus:ring-2 focus:ring-[#f5dc8e] focus:ring-offset-2 focus:ring-offset-transparent"
+                            aria-label={visiblePasswords[field.name] ? `Hide ${field.label.toLowerCase()}` : `Show ${field.label.toLowerCase()}`}
+                            aria-pressed={Boolean(visiblePasswords[field.name])}
+                          >
+                            <EyeIcon />
+                          </button>
+                        ) : null}
                       </div>
                       {errors[field.name] && (
                         <span style={{ color: 'red', fontSize: '12px' }}>
