@@ -135,9 +135,10 @@ SELECT * FROM audit_logs WHERE user_id = $1;
 
 -- name: CreateForgotPasswordToken :one
 INSERT INTO token_forgot_password (
-    user_id
+    user_id, 
+    expired
 ) VALUES (
-    $1
+    $1, $2
 )
 RETURNING *;
 

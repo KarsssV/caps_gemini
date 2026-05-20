@@ -12,7 +12,7 @@ import (
 
 type Querier interface {
 	CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) error
-	CreateForgotPasswordToken(ctx context.Context, userID uuid.UUID) (TokenForgotPassword, error)
+	CreateForgotPasswordToken(ctx context.Context, arg CreateForgotPasswordTokenParams) (TokenForgotPassword, error)
 	CreateHeadCountLog(ctx context.Context, arg CreateHeadCountLogParams) (HeadCountLog, error)
 	CreateSnapshot(ctx context.Context, arg CreateSnapshotParams) (Snapshot, error)
 	CreateSource(ctx context.Context, arg CreateSourceParams) (Source, error)
