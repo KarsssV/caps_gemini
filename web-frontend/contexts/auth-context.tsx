@@ -77,7 +77,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       },
       body: JSON.stringify({first_name, last_name, email, username, password}),
     });
-
     
     if( response.status === 400){
       throw new Error('Missing parameters');
