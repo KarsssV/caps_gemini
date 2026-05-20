@@ -288,7 +288,7 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
           const response = await fetch('http://localhost:8080/api/auth/reset-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: resetToken, password: formData.password }),
+            body: JSON.stringify({ token: resetToken, new_password: formData.password }),
           });
           if (!response.ok) {
             const errText = await response.text();
