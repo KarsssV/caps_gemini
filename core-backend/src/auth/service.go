@@ -7,10 +7,18 @@ import (
 	"time"
 
 	"gin-auth-supabase/src/db"
+	"gin-auth-supabase/src/utils"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	ErrEmailNotFound = errors.New("email not found")
+	ErrTokenNotFound = errors.New("invalid token")
+	ErrTokenExpired  = errors.New("token expired")
+	ErrTokenUsed     = errors.New("token used")
 )
 
 type Service struct {
@@ -74,4 +82,60 @@ func (s *Service) Request(ctx context.Context, userId uuid.UUID) (*db.User, erro
 	}
 
 	return &user, nil
+}
+
+func (s *Service) VerifyForgotPasswordToken(ctx context.Context, req VerifyForgotPasswordTokenRequest) error {
+	tokenUUID := uuid.MustParse(req.Token)
+	tokenStat, err := s.q.GetForgotPasswordToken(ctx, tokenUUID)
+	if err != nil {
+		return ErrTokenNotFound
+	}
+	if tokenStat.Used {
+		return ErrTokenUsed
+	}
+	if tokenStat.Expired.Time.After(time.Now()) {
+		return ErrTokenExpired
+	}
+
+	user, err := s.q.GetUserById(ctx, tokenStat.UserID)
+	if err != nil {
+		return errors.New("cannot get user email")
+	}
+
+	hashedPass, _ := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+
+	err = s.q.UpdateUserPassword(ctx, db.UpdateUserPasswordParams{
+		Password: string(hashedPass),
+		Email:    user.Email,
+	})
+
+	if err != nil {
+		return errors.New("failed to change password")
+	}
+
+	err = s.q.UseForgotPasswordToken(ctx, uuid.MustParse(req.Token))
+	if err != nil {
+		return errors.New("status token unchange")
+	}
+
+	return nil
+}
+
+func (s *Service) ForgotPassword(ctx context.Context, req ForgotPasswordRequest) error {
+	user, err := s.q.GetUserByEmailUsername(ctx, req.Email)
+	if err != nil {
+		return ErrEmailNotFound
+	}
+
+	token, err := s.q.CreateForgotPasswordToken(ctx, user.ID)
+	if err != nil {
+		return errors.New("failed to create token")
+	}
+
+	err = utils.SendEmail(user.Email, token.Token.String())
+	if err != nil {
+		return errors.New("failed to send token")
+	}
+
+	return nil
 }

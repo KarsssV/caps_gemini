@@ -43,6 +43,27 @@ func (q *Queries) CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) 
 	return err
 }
 
+const createForgotPasswordToken = `-- name: CreateForgotPasswordToken :one
+INSERT INTO token_forgot_password (
+    user_id
+) VALUES (
+    $1
+)
+RETURNING token, user_id, used, expired
+`
+
+func (q *Queries) CreateForgotPasswordToken(ctx context.Context, userID uuid.UUID) (TokenForgotPassword, error) {
+	row := q.db.QueryRow(ctx, createForgotPasswordToken, userID)
+	var i TokenForgotPassword
+	err := row.Scan(
+		&i.Token,
+		&i.UserID,
+		&i.Used,
+		&i.Expired,
+	)
+	return i, err
+}
+
 const createHeadCountLog = `-- name: CreateHeadCountLog :one
 INSERT INTO head_count_logs (
     source_name,
@@ -301,6 +322,24 @@ func (q *Queries) GetAuditLogsByUser(ctx context.Context, userID uuid.UUID) ([]A
 		return nil, err
 	}
 	return items, nil
+}
+
+const getForgotPasswordToken = `-- name: GetForgotPasswordToken :one
+SELECT token, user_id, used, expired FROM token_forgot_password
+WHERE token = $1
+LIMIT 1
+`
+
+func (q *Queries) GetForgotPasswordToken(ctx context.Context, token uuid.UUID) (TokenForgotPassword, error) {
+	row := q.db.QueryRow(ctx, getForgotPasswordToken, token)
+	var i TokenForgotPassword
+	err := row.Scan(
+		&i.Token,
+		&i.UserID,
+		&i.Used,
+		&i.Expired,
+	)
+	return i, err
 }
 
 const getHeadCountLogBySource = `-- name: GetHeadCountLogBySource :many
@@ -649,4 +688,31 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.LastName,
 	)
 	return i, err
+}
+
+const updateUserPassword = `-- name: UpdateUserPassword :exec
+UPDATE users
+SET password = $1
+WHERE email = $2
+`
+
+type UpdateUserPasswordParams struct {
+	Password string `json:"password"`
+	Email    string `json:"email"`
+}
+
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.Exec(ctx, updateUserPassword, arg.Password, arg.Email)
+	return err
+}
+
+const useForgotPasswordToken = `-- name: UseForgotPasswordToken :exec
+UPDATE token_forgot_password
+SET used = true
+WHERE token = $1
+`
+
+func (q *Queries) UseForgotPasswordToken(ctx context.Context, token uuid.UUID) error {
+	_, err := q.db.Exec(ctx, useForgotPasswordToken, token)
+	return err
 }

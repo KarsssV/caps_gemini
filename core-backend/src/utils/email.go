@@ -15,6 +15,8 @@ func SendEmail(email string, token string) error {
 	m.SetHeader("To", email)
 	m.SetHeader("Subject", "Reset Password")
 
+	fe_url := os.Getenv("FE_URL")
+
 	// simple html template
 	body := fmt.Sprintf(`
 		<div style="font-family: Arial, sans-serif; padding:20px;">
@@ -31,14 +33,14 @@ func SendEmail(email string, token string) error {
 				width:fit-content;
 				letter-spacing:2px;
 			">
-				%s
+				%s/forgot-password/%s
 			</div>
 
 			<p style="margin-top:20px; color:#777;">
 				Token akan expired dalam 10 menit.
 			</p>
 		</div>
-	`, token)
+	`, fe_url, token)
 
 	m.SetBody("text/html", body)
 

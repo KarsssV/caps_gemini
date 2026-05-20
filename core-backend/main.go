@@ -79,6 +79,8 @@ func main() {
 		{
 			authApi.POST("/register", authHandler.HandleRegister)
 			authApi.POST("/login", authHandler.HandleLogin)
+			authApi.POST("/forgot-password", authHandler.HandleForgotPassword)
+			authApi.POST("/verify-token", authHandler.VerifyForgotPasswordToken)
 		}
 
 		// profileApi := Api.Group("/profile")

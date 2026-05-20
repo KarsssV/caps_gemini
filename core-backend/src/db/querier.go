@@ -12,6 +12,7 @@ import (
 
 type Querier interface {
 	CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) error
+	CreateForgotPasswordToken(ctx context.Context, userID uuid.UUID) (TokenForgotPassword, error)
 	CreateHeadCountLog(ctx context.Context, arg CreateHeadCountLogParams) (HeadCountLog, error)
 	CreateSnapshot(ctx context.Context, arg CreateSnapshotParams) (Snapshot, error)
 	CreateSource(ctx context.Context, arg CreateSourceParams) (Source, error)
@@ -20,6 +21,7 @@ type Querier interface {
 	DeleteSource(ctx context.Context, id uuid.UUID) (Source, error)
 	GetAuditLogs(ctx context.Context) ([]AuditLog, error)
 	GetAuditLogsByUser(ctx context.Context, userID uuid.UUID) ([]AuditLog, error)
+	GetForgotPasswordToken(ctx context.Context, token uuid.UUID) (TokenForgotPassword, error)
 	GetHeadCountLogBySource(ctx context.Context, sourceName string) ([]HeadCountLog, error)
 	GetLatestHeadCountLogBySource(ctx context.Context, sourceName string) ([]HeadCountLog, error)
 	GetSnapshotById(ctx context.Context, id uuid.UUID) (Snapshot, error)
@@ -33,6 +35,8 @@ type Querier interface {
 	UpdateSource(ctx context.Context, arg UpdateSourceParams) (Source, error)
 	UpdateSourceStatus(ctx context.Context, arg UpdateSourceStatusParams) (Source, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
+	UseForgotPasswordToken(ctx context.Context, token uuid.UUID) error
 }
 
 var _ Querier = (*Queries)(nil)
