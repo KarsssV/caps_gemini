@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from '../contexts/auth-context';
 
 type AuthShowcaseProps = {
-  variant: "signup" | "login" | "forgot-password";
+  variant: "signup" | "login" | "forgot-password" | "reset-password";
+  token?: string;
 };
 
 type FieldConfig = {
@@ -92,6 +93,27 @@ const forgotPasswordFields: FieldConfig[] = [
   },
 ];
 
+const resetPasswordFields: FieldConfig[] = [
+  {
+    name: "password",
+    required: true,
+    label: "New password",
+    type: "password",
+    fullWidth: true,
+    hasIcon: true,
+    validate: (val) => (val.length < 8 ? "Password must be at least 8 characters" : null)
+  },
+  {
+    name: "confirm_password",
+    required: true,
+    label: "Confirm new password",
+    type: "password",
+    fullWidth: true,
+    hasIcon: true,
+    validate: (val, all) => (val !== all.password ? "Passwords do not match" : null)
+  },
+];
+
 const campusImages = ["/kantor.svg", "/agro-center.svg"] as const;
 const switchIntervalMs = 30000;
 const fadeDurationMs = 480;
@@ -173,16 +195,25 @@ interface FormData {
   [name: string]: string; // Index signature allows dynamic names
 }
 
-export default function AuthShowcase({ variant }: AuthShowcaseProps) {
+export default function AuthShowcase({ variant, token: resetToken }: AuthShowcaseProps) {
   const router = useRouter();
   const isSignup = variant === "signup";
   const isForgotPassword = variant === "forgot-password";
-  const fields = isSignup ? signupFields : isForgotPassword ? forgotPasswordFields : loginFields;
+  const isResetPassword = variant === "reset-password";
+
+  const fieldMap: Record<string, FieldConfig[]> = {
+    signup: signupFields,
+    login: loginFields,
+    "forgot-password": forgotPasswordFields,
+    "reset-password": resetPasswordFields,
+  };
+  const fields = fieldMap[variant];
   const [imageIndex, setImageIndex] = useState(0);
   const [isFading, setIsFading] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({});
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
   const {user, login, register } = useAuth();
   const [successMessage, setSuccessMessage] = useState('')
@@ -231,11 +262,48 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setSuccessMessage('');
+    setSuccess('');
 
     if (validateForm()) {
       console.log("Form is valid! Sending to API...", formData);
-      if (isSignup) { 
+      if (isForgotPassword) {
+        try {
+          const response = await fetch('http://localhost:8080/api/auth/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: formData.email }),
+          });
+          if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(errText || 'Failed to send reset email');
+          }
+          setSuccess('Reset link has been sent to your email.');
+          setFormData({});
+        } catch (err) {
+          setError('Failed to send reset email. Please try again.');
+        } finally {
+          setLoading(false);
+        }
+      } else if (isResetPassword) {
+        try {
+          const response = await fetch('http://localhost:8080/api/auth/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: resetToken, new_password: formData.password }),
+          });
+          if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(errText || 'Failed to reset password');
+          }
+          setSuccess('Password has been reset successfully!');
+          setFormData({});
+          setTimeout(() => router.push('/login'), 2000);
+        } catch (err) {
+          setError('Failed to reset password. The link may have expired.');
+        } finally {
+          setLoading(false);
+        }
+      } else if (isSignup) { 
         try {
           await register(formData.first_name, formData.last_name, formData.email, formData.username, formData.password);
           router.push("/login");
@@ -288,7 +356,7 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#424242_0%,#2c2c2c_30%,#212121_100%)] px-4 py-4 text-white">
       <div className="mx-auto h-245.5 w-full max-w-378">
         <p className="mb-4 text-[32px] font-medium tracking-tight text-white/65">
-          {isSignup ? "Sign up" : isForgotPassword ? "Reset password" : "Log in"}
+          {isForgotPassword ? "Forgot password" : isResetPassword ? "Reset password" : isSignup ? "Sign up" : "Log in"}
         </p>
 
         <section
@@ -307,37 +375,44 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
           <div className="flex items-center px-6 py-10 md:px-10 lg:px-16 lg:py-14">
             <div className="mx-auto w-full max-w-125">
               <h1 className="text-4xl font-medium tracking-tight text-white sm:text-5xl lg:text-[58px]">
-                {isSignup ? "Create an account" : isForgotPassword ? "Reset Password" : "Welcome back"}
+                {isForgotPassword
+                  ? "Forgot your password?"
+                  : isResetPassword
+                    ? "Set new password"
+                    : isSignup
+                      ? "Create an account"
+                      : "Welcome back"}
               </h1>
               <p className="mt-5 text-xl text-white/88">
-                {isSignup 
-                  ? "Already have an account?" 
-                  : isForgotPassword 
-                  ? "Remember your password?" 
-                  : "Need an account?"
-                }{" "}
-                <Link
-                  href={isSignup ? "/login" : isForgotPassword ? "/login" : "/signup"}
-                  className="text-sky-300 underline underline-offset-4 transition hover:text-sky-200"
-                >
-                  {isSignup 
-                    ? "Log in" 
-                    : isForgotPassword 
-                    ? "Log in" 
-                    : "Sign up"
-                  }
-                </Link>
+                {isForgotPassword ? (
+                  <>Enter your email and we&apos;ll send you a reset link.{" "}
+                    <Link href="/login" className="text-sky-300 underline underline-offset-4 transition hover:text-sky-200">Back to login</Link>
+                  </>
+                ) : isResetPassword ? (
+                  <>Enter your new password below.{" "}
+                    <Link href="/login" className="text-sky-300 underline underline-offset-4 transition hover:text-sky-200">Back to login</Link>
+                  </>
+                ) : (
+                  <>{isSignup ? "Already have an account?" : "Need an account?"}{" "}
+                    <Link
+                      href={isSignup ? "/login" : "/signup"}
+                      className="text-sky-300 underline underline-offset-4 transition hover:text-sky-200"
+                    >
+                      {isSignup ? "Log in" : "Sign up"}
+                    </Link>
+                  </>
+                )}
               </p>
 
               {error && (
-                <div className="alert alert-danger" role="alert">
+                <div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300" role="alert">
                   {error}
                 </div>
               )}
 
-              {successMessage && (
-                <div className="rounded-sm border border-green-500/40 bg-green-500/10 p-3 text-sm text-green-300" role="alert">
-                  {successMessage}
+              {success && (
+                <div className="mt-4 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300" role="alert">
+                  {success}
                 </div>
               )}
 
@@ -380,11 +455,7 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
                       </Link>
                     </span>
                   </label>
-                ) : isForgotPassword ? (
-                  <p className="text-sm text-white/75">
-                    Enter your email address and we'll send you a link to reset your password.
-                  </p>
-                ) : (
+                ) : !isForgotPassword && !isResetPassword ? (
                   <div className="flex items-center justify-between gap-4 text-sm text-white/85">
                     <label className="flex items-center gap-3">
                       <input
@@ -397,13 +468,22 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
                       Forgot password?
                     </Link>
                   </div>
-                )}
+                ) : null}
 
                 <button
                   type="submit"
-                  className="mt-2 h-14 w-full rounded-xl bg-[#e2c15d] text-2xl font-medium text-[#8b6b12] shadow-[0_12px_26px_rgba(115,90,12,0.28)] transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-[#f5dc8e] focus:ring-offset-2 focus:ring-offset-transparent"
+                  disabled={loading}
+                  className="mt-2 h-14 w-full rounded-xl bg-[#e2c15d] text-2xl font-medium text-[#8b6b12] shadow-[0_12px_26px_rgba(115,90,12,0.28)] transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-[#f5dc8e] focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {isSignup ? "Create Account" : isForgotPassword ? "Send Reset Link" : "Log In"}
+                  {loading
+                    ? "Please wait..."
+                    : isForgotPassword
+                      ? "Send Reset Link"
+                      : isResetPassword
+                        ? "Reset Password"
+                        : isSignup
+                          ? "Create Account"
+                          : "Log In"}  
                 </button>
               </form>
             </div>

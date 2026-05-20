@@ -11,6 +11,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -93,7 +94,7 @@ func (s *Service) VerifyForgotPasswordToken(ctx context.Context, req VerifyForgo
 	if tokenStat.Used {
 		return ErrTokenUsed
 	}
-	if tokenStat.Expired.Time.After(time.Now()) {
+	if tokenStat.Expired.Time.Before(time.Now()) {
 		return ErrTokenExpired
 	}
 
@@ -127,7 +128,15 @@ func (s *Service) ForgotPassword(ctx context.Context, req ForgotPasswordRequest)
 		return ErrEmailNotFound
 	}
 
-	token, err := s.q.CreateForgotPasswordToken(ctx, user.ID)
+	expired_at := time.Now().Add(10 * time.Minute)
+
+	token, err := s.q.CreateForgotPasswordToken(ctx, db.CreateForgotPasswordTokenParams{
+		UserID: user.ID,
+		Expired: pgtype.Timestamptz{
+			Time:  expired_at,
+			Valid: true,
+		},
+	})
 	if err != nil {
 		return errors.New("failed to create token")
 	}

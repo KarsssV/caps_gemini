@@ -45,15 +45,21 @@ func (q *Queries) CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) 
 
 const createForgotPasswordToken = `-- name: CreateForgotPasswordToken :one
 INSERT INTO token_forgot_password (
-    user_id
+    user_id, 
+    expired
 ) VALUES (
-    $1
+    $1, $2
 )
 RETURNING token, user_id, used, expired
 `
 
-func (q *Queries) CreateForgotPasswordToken(ctx context.Context, userID uuid.UUID) (TokenForgotPassword, error) {
-	row := q.db.QueryRow(ctx, createForgotPasswordToken, userID)
+type CreateForgotPasswordTokenParams struct {
+	UserID  uuid.UUID          `json:"user_id"`
+	Expired pgtype.Timestamptz `json:"expired"`
+}
+
+func (q *Queries) CreateForgotPasswordToken(ctx context.Context, arg CreateForgotPasswordTokenParams) (TokenForgotPassword, error) {
+	row := q.db.QueryRow(ctx, createForgotPasswordToken, arg.UserID, arg.Expired)
 	var i TokenForgotPassword
 	err := row.Scan(
 		&i.Token,
