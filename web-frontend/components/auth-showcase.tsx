@@ -247,7 +247,6 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
   };
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
     let isValid = true;
 
     fields.forEach((field) => {
@@ -256,14 +255,15 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
         const error = field.validate(value, formData);
         
         if (error) {
-          console.log(field.name + " " + error)
-          newErrors[field.name] = error;
           isValid = false;
         }
       }
     });
 
-    setErrors(newErrors);
+    
+    if(!isValid) {
+      setError('Incorrect email or password');
+    }
     return isValid;
   };
 
@@ -345,7 +345,7 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
       }
     } else {
       setLoading(false);
-      setError("Form has errors. Fix them, please.");
+      setError('Incorrect email or password');
     }
   };
 
