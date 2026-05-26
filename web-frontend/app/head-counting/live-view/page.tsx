@@ -37,9 +37,11 @@ export default function LiveViewPage() {
   const streamErrRef = useRef(false);
   const selectedSourceIdRef = useRef(selectedSourceId);
   const tokenRef = useRef(token);
+  const apiUrl = process.env.BE_CORE_URL || 'http://localhost:8080';
+  const wsUrl = process.env.BE_CORE_WS_URL || 'ws://localhost:8080';
   
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080/ws');
+    const socket = new WebSocket(`${wsUrl}/ws`);
 
     socket.onopen = () => {
       setStatus('Open');
@@ -76,7 +78,7 @@ export default function LiveViewPage() {
 
   async function fetchSources() {
     try {
-      const response = await fetch(`http://localhost:8080/api/sources`, {
+      const response = await fetch(`${apiUrl}/api/sources`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -95,7 +97,7 @@ export default function LiveViewPage() {
   const UpdateSource = async (targetStatus: boolean) => {
     if (selectedSourceIdRef.current !== "0" && tokenRef.current) {
       try {
-        const response = await fetch(`http://localhost:8080/api/sources/status/${selectedSourceIdRef.current}`, {
+        const response = await fetch(`${apiUrl}/api/sources/status/${selectedSourceIdRef.current}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

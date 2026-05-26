@@ -26,10 +26,11 @@ export default function SourcesPage() {
   const [err, setError] = useState("");
   const [sourceId, setSourceId] = useState("")
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ id: string; name: string } | null>(null);
+  const apiUrl = process.env.BE_CORE_URL || 'http://localhost:8080';
 
   async function fetchSources() {
     try {
-      const response = await fetch(`http://localhost:8080/api/sources`, {
+      const response = await fetch(`${apiUrl}/api/sources`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -119,7 +120,7 @@ export default function SourcesPage() {
 
     if(modalType == "create"){
       try {
-        const response = await fetch('http://localhost:8080/api/sources', {
+        const response = await fetch(`${apiUrl}/api/sources`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -146,7 +147,7 @@ export default function SourcesPage() {
       }
     } else if(modalType == "update"){
       try{  
-        const response = await fetch(`http://localhost:8080/api/sources/${sourceId}`, {
+        const response = await fetch(`${apiUrl}/api/sources/${sourceId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -185,7 +186,7 @@ export default function SourcesPage() {
     
     const userId = user?.id
     try{
-      const response = await fetch(`http://localhost:8080/api/sources/${sourceId}`, {
+      const response = await fetch(`${apiUrl}/api/sources/${sourceId}`, {
         method: "DELETE",
         headers: {
           'Content-Type': 'application/json',
