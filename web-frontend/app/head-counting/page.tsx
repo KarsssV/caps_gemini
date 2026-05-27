@@ -30,10 +30,10 @@ export default function HeadCountingPage() {
   const {user, token} = useAuth();
   const [err, setError] = useState("");
   const router = useRouter();
-  const apiUrl = process.env.BE_CORE_URL || 'http://localhost:8080';
 
   async function fetchRecords() {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
       const response = await fetch(`${apiUrl}/api/snapshots`, {
         headers: {
           Authorization: `Bearer ${token}`,

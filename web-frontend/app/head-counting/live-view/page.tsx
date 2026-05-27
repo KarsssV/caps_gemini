@@ -8,7 +8,6 @@ import AppShell from "../../../components/app-shell";
 import { useRouter } from "next/navigation";
 import { readSourcesFromStorage, type SourceItem } from "../../../lib/sources";
 import { useAuth } from "../../../contexts/auth-context";
-import ImageWithFallback from "../../../components/image-with-fallback-src";
 
 type HeadCountLog = {
   id: number;
@@ -37,10 +36,9 @@ export default function LiveViewPage() {
   const streamErrRef = useRef(false);
   const selectedSourceIdRef = useRef(selectedSourceId);
   const tokenRef = useRef(token);
-  const apiUrl = process.env.BE_CORE_URL || 'http://localhost:8080';
-  const wsUrl = process.env.BE_CORE_WS_URL || 'ws://localhost:8080';
   
   useEffect(() => {
+    const wsUrl = process.env.NEXT_PUBLIC_BE_CORE_WS_URL || 'ws://localhost:8080';
     const socket = new WebSocket(`${wsUrl}/ws`);
 
     socket.onopen = () => {
@@ -78,6 +76,7 @@ export default function LiveViewPage() {
 
   async function fetchSources() {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
       const response = await fetch(`${apiUrl}/api/sources`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -97,6 +96,7 @@ export default function LiveViewPage() {
   const UpdateSource = async (targetStatus: boolean) => {
     if (selectedSourceIdRef.current !== "0" && tokenRef.current) {
       try {
+        const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
         const response = await fetch(`${apiUrl}/api/sources/status/${selectedSourceIdRef.current}`, {
           method: 'PUT',
           headers: {

@@ -28,7 +28,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const apiUrl = process.env.BE_CORE_URL || 'http://localhost:8080';
 
   useEffect(() => {
     // Check for stored token on mount
@@ -43,6 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const login = async (email_username: string, password: string) => {
+    const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL;
     const response = await fetch(`${apiUrl}/api/auth/login`, {
       method: 'POST',
       headers: {
@@ -71,6 +71,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const register = async (first_name: string, last_name: string, email: string, username: string, password: string) => {
+    const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL;
     const response = await fetch(`${apiUrl}/api/auth/register`, {
       method: 'POST',
       headers: {

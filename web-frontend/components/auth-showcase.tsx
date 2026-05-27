@@ -200,7 +200,6 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
   const isSignup = variant === "signup";
   const isForgotPassword = variant === "forgot-password";
   const isResetPassword = variant === "reset-password";
-  const apiUrl = process.env.BE_CORE_URL || 'http://localhost:8080';
   
   const fieldMap: Record<string, FieldConfig[]> = {
     signup: signupFields,
@@ -275,9 +274,9 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
     setSuccess('');
 
     if (validateForm()) {
-      console.log("Form is valid! Sending to API...", formData);
       if (isForgotPassword) {
         try {
+          const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
           const response = await fetch(`${apiUrl}/api/auth/forgot-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -296,6 +295,7 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
         }
       } else if (isResetPassword) {
         try {
+          const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
           const response = await fetch(`${apiUrl}/api/auth/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
