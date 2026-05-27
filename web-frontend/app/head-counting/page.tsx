@@ -33,8 +33,7 @@ export default function HeadCountingPage() {
 
   async function fetchRecords() {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
-      const response = await fetch(`${apiUrl}/api/snapshots`, {
+      const response = await fetch(`/api/snapshots`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

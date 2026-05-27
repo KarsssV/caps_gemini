@@ -38,8 +38,8 @@ export default function LiveViewPage() {
   const tokenRef = useRef(token);
   
   useEffect(() => {
-    const wsUrl = process.env.NEXT_PUBLIC_BE_CORE_WS_URL || 'ws://localhost:8080';
-    const socket = new WebSocket(`${wsUrl}/ws`);
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
     socket.onopen = () => {
       setStatus('Open');
@@ -76,8 +76,7 @@ export default function LiveViewPage() {
 
   async function fetchSources() {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
-      const response = await fetch(`${apiUrl}/api/sources`, {
+      const response = await fetch(`/api/sources`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -96,8 +95,7 @@ export default function LiveViewPage() {
   const UpdateSource = async (targetStatus: boolean) => {
     if (selectedSourceIdRef.current !== "0" && tokenRef.current) {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
-        const response = await fetch(`${apiUrl}/api/sources/status/${selectedSourceIdRef.current}`, {
+        const response = await fetch(`/api/sources/status/${selectedSourceIdRef.current}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -212,18 +210,10 @@ export default function LiveViewPage() {
           </div>
 
           <div className="relative min-h-104 w-full flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[#213d2e]">
-            {/* <ImageWithFallback
-              src={ selectedSource ? `http://localhost:8000/camera/stream/${selectedSource.id}` : '/surveillance.svg'}
-              alt=""
-              fallbackSrc="/surveillance.svg"
-              fill
-              className="object-cover"
-              sizes="(max-width: 1200px) 100vw, 1200px"
-            /> */}
             <Image
               alt=""
               onError={() => setStreamError(true)}
-              src={ streamErr || !selectedSource ? '/surveillance.svg' : `http://localhost:8000/camera/stream/${selectedSource.id}` }
+              src={ streamErr || !selectedSource ? '/surveillance.svg' : `/camera/stream/${selectedSource.id}` }
               fill
               className="object-cover"
               sizes="(max-width: 1200px) 100vw, 1200px"

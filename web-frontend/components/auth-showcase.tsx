@@ -276,8 +276,7 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
     if (validateForm()) {
       if (isForgotPassword) {
         try {
-          const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
-          const response = await fetch(`${apiUrl}/api/auth/forgot-password`, {
+          const response = await fetch(`/api/auth/forgot-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: formData.email }),
@@ -295,8 +294,7 @@ export default function AuthShowcase({ variant, token: resetToken }: AuthShowcas
         }
       } else if (isResetPassword) {
         try {
-          const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
-          const response = await fetch(`${apiUrl}/api/auth/reset-password`, {
+          const response = await fetch(`/api/auth/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: resetToken, new_password: formData.password }),

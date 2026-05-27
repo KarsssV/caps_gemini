@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -12,6 +11,23 @@ const nextConfig: NextConfig = {
         pathname: '/public/**',
       },
     ],
+  },
+  // 1. Add 'async' here
+  async rewrites() { 
+    return [
+      {
+        source: '/ws/:path*',
+        destination: `${process.env.NEXT_PUBLIC_BE_CORE_URL}/ws`, 
+      },
+      {
+        source: '/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_BE_CORE_URL}/api/:path*`, 
+      },
+      {
+        source: '/camera/:path*',
+        destination: `${process.env.NEXT_PUBLIC_BE_AI_URL}/camera/:path*`, 
+      },
+    ];
   },
 };
 

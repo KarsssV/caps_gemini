@@ -42,8 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const login = async (email_username: string, password: string) => {
-    const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL;
-    const response = await fetch(`${apiUrl}/api/auth/login`, {
+    const response = await fetch(`/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -71,8 +70,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const register = async (first_name: string, last_name: string, email: string, username: string, password: string) => {
-    const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL;
-    const response = await fetch(`${apiUrl}/api/auth/register`, {
+    const response = await fetch(`/api/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
