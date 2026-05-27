@@ -23,7 +23,7 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("Notice: No .env file found. Relying on system environment variables.")
 	}
 
 	pool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
