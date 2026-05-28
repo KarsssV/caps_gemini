@@ -58,8 +58,8 @@ func main() {
 	}
 
 	r.Use(cors.New(cors.Config{
-		AllowAllOrigins: true,
-		// AllowOrigins:     origins,
+		// AllowAllOrigins: true,
+		AllowOrigins:     origins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
