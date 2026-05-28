@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import AccountSettingsModal from "./account-settings-modal";
+import { useAuth } from "../contexts/auth-context";
 
 type AppShellProps = {
   title: string;
@@ -24,6 +25,10 @@ const POPUP_BLOCKER_NOTICE_KEY = "popup-blocker-notice-dismissed";
 export default function AppShell({ title, children, variant = "default" }: AppShellProps) {
   const pathname = usePathname();
   const isDashboard = variant === "dashboard";
+  const { user } = useAuth();
+  const initials = user?.username
+    ? user.username.slice(0, 2).toUpperCase()
+    : "U";
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isPopupNoticeOpen, setIsPopupNoticeOpen] = useState(false);
 
@@ -85,7 +90,7 @@ export default function AppShell({ title, children, variant = "default" }: AppSh
               className="flex w-full items-center gap-3 rounded-sm border border-white/15 bg-white/10 px-3 py-2 text-sm text-white/80 transition hover:bg-white/20"
             >
               <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-white/35 bg-[#d6be67] text-xs font-semibold text-[#1a3f26]">
-                NU
+              {initials}
               </div>
               <span>Account</span>
             </button>

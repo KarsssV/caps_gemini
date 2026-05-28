@@ -168,12 +168,14 @@ export default function SourcesPage() {
                       </td>
                       <td className="border border-[#2f8e4c]/40 px-3 py-3 text-center">
                         <div className="flex items-center justify-center gap-2 text-xs">
+                          {/* View button hidden — belum tersedia
                           <Link
                             href={`/head-counting/live-view?sourceId=${source.id}`}
                             className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10"
                           >
                             View
                           </Link>
+                          */}
                           <button
                             type="button"
                             onClick={() => handleEditClick(source)}

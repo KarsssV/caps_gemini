@@ -27,7 +27,22 @@ export default function AccountSettingsModal({ isOpen, onClose }: AccountSetting
           </button>
         </div>
 
-        <div className="mx-auto h-18 w-18 rounded-full bg-white/25" />
+        <div className="mx-auto flex h-18 w-18 items-center justify-center rounded-full bg-white/25">
+          {/* Placeholder person icon — replace with <img> when profile picture is available */}
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-10 w-10 text-white/70"
+          >
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+          </svg>
+        </div>
 
         <div className="mt-3 text-center">
           <p className="text-base font-semibold tracking-wide">{user?.username}</p>
@@ -35,12 +50,12 @@ export default function AccountSettingsModal({ isOpen, onClose }: AccountSetting
         </div>
 
         <div className="mt-3 space-y-2">
-          <button
+          {/* <button
             type="button"
             className="h-8 w-full rounded-md border border-white/20 bg-white/20 text-sm text-white/90 transition hover:bg-white/30"
           >
             Edit Profile
-          </button>
+          </button> */}
           <button
             type="button"
             className="h-8 w-full rounded-md border border-white/20 bg-white/20 text-sm font-medium text-white transition hover:bg-white/30"
