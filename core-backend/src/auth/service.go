@@ -143,7 +143,7 @@ func (s *Service) ForgotPassword(ctx context.Context, req ForgotPasswordRequest)
 
 	err = utils.SendEmail(user.Email, token.Token.String())
 	if err != nil {
-		return errors.New("failed to send token")
+		return err
 	}
 
 	return nil
