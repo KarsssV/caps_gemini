@@ -56,14 +56,7 @@ func main() {
 	if ai := os.Getenv("BE_AI_URL"); ai != "" {
 		origins = append(origins, ai)
 	}
-	r.Use(func(c *gin.Context) {
-		// We wrap the strings in single quotes to expose hidden spaces or trailing slashes
-		log.Println("--- CORS DEBUG ---")
-		log.Println("Expected FE_URL : '%s'", os.Getenv("FE_URL"))
-		log.Println("Received Origin : '%s'", c.GetHeader("Origin"))
-		log.Println("------------------")
-		c.Next()
-	})
+
 	r.Use(cors.New(cors.Config{
 		// AllowAllOrigins: true,
 		AllowOrigins:     origins,
