@@ -5,14 +5,13 @@ const nextConfig: NextConfig = {
     unoptimized: true,
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
+        protocol: 'https',
+        hostname: `${process.env.NEXT_PUBLIC_BE_CORE_URL}`,
         port: '8080',
         pathname: '/public/**',
       },
     ],
   },
-  // 1. Add 'async' here
   async rewrites() { 
     return [
       {
