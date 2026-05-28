@@ -30,7 +30,7 @@ export default function SourcesPage() {
   async function fetchSources() {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
-      const response = await fetch(`${apiUrl}/api/sources`, {
+      const response = await fetch(`/api/sources`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -120,8 +120,7 @@ export default function SourcesPage() {
 
     if(modalType == "create"){
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
-        const response = await fetch(`${apiUrl}/api/sources`, {
+        const response = await fetch(`/api/sources`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -148,8 +147,7 @@ export default function SourcesPage() {
       }
     } else if(modalType == "update"){
       try{  
-        const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
-        const response = await fetch(`${apiUrl}/api/sources/${sourceId}`, {
+        const response = await fetch(`/api/sources/${sourceId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -188,8 +186,7 @@ export default function SourcesPage() {
     
     const userId = user?.id
     try{
-      const apiUrl = process.env.NEXT_PUBLIC_BE_CORE_URL || 'http://localhost:8080';
-      const response = await fetch(`${apiUrl}/api/sources/${sourceId}`, {
+      const response = await fetch(`/api/sources/${sourceId}`, {
         method: "DELETE",
         headers: {
           'Content-Type': 'application/json',
