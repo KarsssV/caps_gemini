@@ -337,21 +337,21 @@ export default function SourcesPage() {
                   onChange={(event) => setType(event.target.value as SourceType)}
                   className="mt-1 h-10 w-full rounded-sm border border-white/30 bg-[#0f4b2b]/60 px-3 text-white outline-none focus:border-[#e2c15d] focus:bg-[#0f4b2b]/80"
                 >
-                  <option value="RTSP">RTSP</option>
-                  <option value="Webcam">Webcam</option>
-                  <option value="Youtube">Youtube</option>
-                  <option value="MP4">MP4</option>
+                  <option value="RSTP">RSTP</option>
+                  {/* YouTube dan File dinonaktifkan sementara, hanya RTSP yang didukung */}
+                  {/* <option value="YouTube">YouTube</option> */}
+                  {/* <option value="File">File</option> */}
                 </select>
               </label>
 
               <label className="block text-sm text-white/85">
-                URL / Path
+                RTSP URL
                 <input
                   required
                   type="text"
                   value={url}
                   onChange={(event) => setUrl(event.target.value)}
-                  placeholder="rtsp://... / https://... /"
+                  placeholder="rtsp://username:password@192.168.x.x:554/stream"
                   className="mt-1 h-10 w-full rounded-sm border border-white/30 bg-[#0f4b2b]/60 px-3 text-white placeholder:text-white/40 outline-none focus:border-[#e2c15d] focus:bg-[#0f4b2b]/80"
                 />
               </label>
@@ -371,7 +371,6 @@ export default function SourcesPage() {
                   type="submit"
                   className="h-10 rounded-sm border border-[#e2c15d]/70 bg-[#e2c15d]/25 px-4 text-sm font-medium text-white transition hover:bg-[#e2c15d]/40"
                 >
-                  Save Source
                 </button>
               </div>
             </form>

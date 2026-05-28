@@ -199,7 +199,7 @@ export default function HeadCountingPage() {
 
             <button
               type="button"
-              onClick={() => handleReset({ preventDefault: () => {} } as any)}
+              onClick={() => handleReset({ preventDefault: () => { } } as any)}
               aria-label="Reset filters"
               title="Reset filters"
               className="flex h-10 w-12 items-center justify-center rounded-sm border border-[#e2c15d]/60 bg-[#e2c15d]/20 text-white transition hover:bg-[#e2c15d]/30"
@@ -245,109 +245,138 @@ export default function HeadCountingPage() {
                 <path d="M11 20H15" />
               </svg>
             </button>
-            </div>
           </div>
+        </div>
 
-          <div className="overflow-x-auto rounded-lg border border-[#2f8e4c]/40 bg-[#0f4b2b]/40">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="bg-[#0f4b2b] text-white/85">
-                  <th className="border border-[#2f8e4c]/40 px-3 py-2 text-left">No</th>
-                  <th className="border border-[#2f8e4c]/40 px-3 py-2 text-left">Date</th>
-                  <th className="border border-[#2f8e4c]/40 px-3 py-2 text-left">Timestamp</th>
-                  <th className="border border-[#2f8e4c]/40 px-3 py-2 text-left">Source</th>
-                  <th className="border border-[#2f8e4c]/40 px-3 py-2 text-left">Head Count</th>
-                  <th className="border border-[#2f8e4c]/40 px-3 py-2 text-left">Picture</th>
+        <div className="overflow-x-auto rounded-lg border border-[#2f8e4c]/40 bg-[#0f4b2b]/40">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="bg-[#0f4b2b] text-white/85">
+                <th className="border border-[#2f8e4c]/40 px-3 py-2 text-left">No</th>
+                <th className="border border-[#2f8e4c]/40 px-3 py-2 text-left">Date</th>
+                <th className="border border-[#2f8e4c]/40 px-3 py-2 text-left">Timestamp</th>
+                <th className="border border-[#2f8e4c]/40 px-3 py-2 text-left">Source</th>
+                <th className="border border-[#2f8e4c]/40 px-3 py-2 text-left">Head Count</th>
+                <th className="border border-[#2f8e4c]/40 px-3 py-2 text-left">Picture</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedRecords.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="border border-[#2f8e4c]/40 px-3 py-8 text-center text-white/50">
+                    No records found.
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {sortedRecords.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="border border-[#2f8e4c]/40 px-3 py-8 text-center text-white/50">
-                      No records found.
+              ) : (
+                paginatedRecords.map((record, index) => (
+                  <tr key={record.id} className="bg-[#145e35]/40 text-white/90 hover:bg-[#145e35]/60">
+                    <td className="border border-[#2f8e4c]/40 px-3 py-3">{index + 1}</td>
+                    <td className="border border-[#2f8e4c]/40 px-3 py-3">{formatDisplayDate(record.date)}</td>
+                    <td className="border border-[#2f8e4c]/40 px-3 py-3">{record.timestamp}</td>
+                    <td className="border border-[#2f8e4c]/40 px-3 py-3">{record.source_name}</td>
+                    <td className="border border-[#2f8e4c]/40 px-3 py-3 font-semibold">{record.head_count_at_time}</td>
+                    <td className="border border-[#2f8e4c]/40 px-3 py-3">
+                      <div className="relative h-12 w-20 overflow-hidden rounded-sm bg-[#0f4b2b] border border-white/20">
+                        <Image
+                          src={record.image_path}
+                          alt="Snapshot"
+                          fill
+                          className="object-cover"
+                          sizes="80px"
+                        />
+                      </div>
                     </td>
                   </tr>
-                ) : (
-                  paginatedRecords.map((record, index) => (
-                    <tr key={record.id} className="bg-[#145e35]/40 text-white/90 hover:bg-[#145e35]/60">
-                      <td className="border border-[#2f8e4c]/40 px-3 py-3">{index + 1}</td>
-                      <td className="border border-[#2f8e4c]/40 px-3 py-3">{formatDisplayDate(record.date)}</td>
-                      <td className="border border-[#2f8e4c]/40 px-3 py-3">{record.timestamp}</td>
-                      <td className="border border-[#2f8e4c]/40 px-3 py-3">{sources ? sources.find(s => s === record.source_name) : "Source not found"}</td>
-                      <td className="border border-[#2f8e4c]/40 px-3 py-3 font-semibold">{record.head_count_at_time}</td>
-                      <td className="border border-[#2f8e4c]/40 px-3 py-3">
-                        <div className="relative h-12 w-20 overflow-hidden rounded-sm bg-[#0f4b2b] border border-white/20">
-                          <Image
-                            src={record.image_path}
-                            alt="Snapshot"
-                            fill
-                            className="object-cover"
-                            sizes="80px"
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-          {/* Pagination */}
-          {sortedRecords.length > 0 && (
-            <div className="mt-4 flex items-center justify-between rounded-lg border border-[#2f8e4c]/40 bg-[#0f4b2b]/40 p-4">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="rounded-sm border border-white/30 bg-white/10 px-3 py-2 text-sm text-white/80 transition hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Prev
-                </button>
+        {/* Pagination */}
+        {sortedRecords.length > 0 && (
+          <div className="mt-4 flex items-center justify-between rounded-lg border border-[#2f8e4c]/40 bg-[#0f4b2b]/40 p-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="rounded-sm border border-white/30 bg-white/10 px-3 py-2 text-sm text-white/80 transition hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Prev
+              </button>
 
-                <div className="flex gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`rounded-sm px-3 py-2 text-sm transition ${
-                        currentPage === page
+              <div className="flex gap-1">
+                {(() => {
+                  // Build the list of page numbers + "..." separators to display
+                  const items: (number | "...")[] = [];
+                  const delta = 1; // pages to show on each side of current
+
+                  const rangeStart = Math.max(2, currentPage - delta);
+                  const rangeEnd = Math.min(totalPages - 1, currentPage + delta);
+
+                  items.push(1);
+
+                  if (rangeStart > 2) items.push("...");
+
+                  for (let p = rangeStart; p <= rangeEnd; p++) {
+                    items.push(p);
+                  }
+
+                  if (rangeEnd < totalPages - 1) items.push("...");
+
+                  if (totalPages > 1) items.push(totalPages);
+
+                  return items.map((item, idx) =>
+                    item === "..." ? (
+                      <span
+                        key={`ellipsis-${idx}`}
+                        className="flex items-center px-2 py-2 text-sm text-white/50 select-none"
+                      >
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={item}
+                        onClick={() => setCurrentPage(item)}
+                        className={`rounded-sm px-3 py-2 text-sm transition ${currentPage === item
                           ? "bg-[#2f8e4c] text-white border border-[#2f8e4c]"
                           : "border border-white/30 bg-white/10 text-white/80 hover:bg-white/20"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                  className="rounded-sm border border-white/30 bg-white/10 px-3 py-2 text-sm text-white/80 transition hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
+                          }`}
+                      >
+                        {item}
+                      </button>
+                    )
+                  );
+                })()}
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-white/70">
-                <span>Page</span>
-                <select
-                  value={currentPage}
-                  onChange={(event) => setCurrentPage(Number(event.target.value))}
-                  aria-label="Select page"
-                  className="h-9 rounded-sm border border-white/30 bg-white/10 px-2 text-sm text-white outline-none transition hover:bg-white/20 focus:border-[#e2c15d]"
-                >
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <option key={page} value={page} className="text-black">
-                      {page}
-                    </option>
-                  ))}
-                </select>
-                <span>of <span className="font-semibold text-white">{totalPages}</span></span>
-              </div>
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="rounded-sm border border-white/30 bg-white/10 px-3 py-2 text-sm text-white/80 transition hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
             </div>
-          )}
+
+            <div className="flex items-center gap-2 text-sm text-white/70">
+              <span>Page</span>
+              <select
+                value={currentPage}
+                onChange={(event) => setCurrentPage(Number(event.target.value))}
+                aria-label="Select page"
+                className="h-9 rounded-sm border border-white/30 bg-white/10 px-2 text-sm text-white outline-none transition hover:bg-white/20 focus:border-[#e2c15d]"
+              >
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <option key={page} value={page} className="text-black">
+                    {page}
+                  </option>
+                ))}
+              </select>
+              <span>of <span className="font-semibold text-white">{totalPages}</span></span>
+            </div>
+          </div>
+        )}
       </section>
     </AppShell>
   );
