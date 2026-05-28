@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	auditLog "gin-auth-supabase/src/audit_logs"
 	"gin-auth-supabase/src/auth"
 	"gin-auth-supabase/src/db"
 	headCountLog "gin-auth-supabase/src/head_count_log"
@@ -40,17 +39,17 @@ func main() {
 	SourcesService := sources.NewService(queries, pool)
 	headCountLogService := headCountLog.NewService(queries)
 	snapshotsService := snapshots.NewService(queries)
-	auditLogService := auditLog.NewService(queries)
+	// auditLogService := auditLog.NewService(queries)
 
 	authHandler := auth.NewHandler(authService)
 	SourcesHandler := sources.NewHandler(SourcesService)
 	headCountLogHandler := headCountLog.NewHandler(headCountLogService, wsHub)
 	snapshotsHandler := snapshots.NewHandler(snapshotsService)
-	auditLogHandler := auditLog.NewHandler(auditLogService)
+	// auditLogHandler := auditLog.NewHandler(auditLogService)
 
 	r := gin.Default()
 
-	origins := []string{"http://localhost:3000"}
+	origins := []string{}
 	if fe := os.Getenv("FE_URL"); fe != "" {
 		origins = append(origins, fe)
 	}
@@ -59,8 +58,8 @@ func main() {
 	}
 
 	r.Use(cors.New(cors.Config{
-		AllowAllOrigins: true,
-		// AllowOrigins:     origins,
+		// AllowAllOrigins: true,
+		AllowOrigins:     origins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -83,13 +82,6 @@ func main() {
 			authApi.POST("/reset-password", authHandler.VerifyForgotPasswordToken)
 		}
 
-		// profileApi := Api.Group("/profile")
-		// profileApi.Use(auth.AuthMiddleware())
-		// {
-		// 	profileApi.GET("", authHandler.HandleRequest)
-		// 	profileApi.PUT("", authHandler.HandleUpdate)
-		// }
-
 		SourcesApi := Api.Group("/sources")
 		SourcesApi.GET("", SourcesHandler.HandleRequest)
 		SourcesApi.Use(auth.AuthMiddleware())
@@ -102,26 +94,26 @@ func main() {
 		}
 
 		headCountLogApi := Api.Group("/logs")
+		headCountLogApi.Use(auth.AuthMiddleware())
 		{
 			headCountLogApi.POST("", headCountLogHandler.HandleAdd)
-			// headCountLogApi.GET("/:sourceId", headCountLogHandler.HandleRequestBySource)
-			headCountLogApi.GET("/:sourceName", headCountLogHandler.HandleRequestBySource)
+			// headCountLogApi.GET("/:sourceName", headCountLogHandler.HandleRequestBySource)
 		}
 
 		snapshotsApi := Api.Group("/snapshots")
+		snapshotsApi.Use(auth.AuthMiddleware())
 		{
 			snapshotsApi.POST("", snapshotsHandler.HandleAdd)
 			snapshotsApi.GET("", snapshotsHandler.HandleRequest)
 			// snapshotsApi.GET("/:sourceId/:snapshotId", snapshotsHandler.HandleRequestById)
-			// snapshotsApi.DELETE("/:sourceId/:snapshotId", snapshotsHandler.HandleDeleteById)
+			snapshotsApi.DELETE("/:sourceId/:snapshotId", snapshotsHandler.HandleDeleteById)
 		}
 
-		auditLogApi := Api.Group("/crudlogs")
-		{
-			// auditLogApi.POST("", auditLogHandler.HandleAdd)
-			auditLogApi.GET("", auditLogHandler.HandleRequest)
-			auditLogApi.GET("/:userId", auditLogHandler.HandleRequestByUserId)
-		}
+		// auditLogApi := Api.Group("/crudlogs")
+		// {
+		// 	auditLogApi.GET("", auditLogHandler.HandleRequest)
+		// 	auditLogApi.GET("/:userId", auditLogHandler.HandleRequestByUserId)
+		// }
 	}
 
 	r.Run(":8080")
