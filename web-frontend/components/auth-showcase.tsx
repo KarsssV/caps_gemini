@@ -19,7 +19,7 @@ type FieldConfig = {
 };
 
 const signupFields: FieldConfig[] = [
-  { 
+  {
     name: "first_name",
     required: true,
     label: "First name"
@@ -96,7 +96,7 @@ const campusImages = ["/kantor.svg", "/agro-center.svg"] as const;
 const switchIntervalMs = 30000;
 const fadeDurationMs = 480;
 
-function EyeIcon() {
+function EyeOpenIcon() {
   return (
     <svg
       aria-hidden="true"
@@ -110,6 +110,25 @@ function EyeIcon() {
     >
       <path d="M2 12s3.75-6 10-6 10 6 10 6-3.75 6-10 6S2 12 2 12Z" />
       <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+      <line x1="1" y1="1" x2="23" y2="23" />
     </svg>
   );
 }
@@ -185,7 +204,14 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
-  const {login, register } = useAuth();
+  const { login, register } = useAuth();
+
+  // Track which password fields are showing plain text
+  const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
+
+  const toggleShowPassword = (fieldName: string) => {
+    setShowPassword((prev) => ({ ...prev, [fieldName]: !prev[fieldName] }));
+  };
 
   type FormErrors = Record<string, string | null>;
 
@@ -193,12 +219,12 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-  };  
+  };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -208,7 +234,7 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
       if (field.validate) {
         const value = formData[field.name] || "";
         const error = field.validate(value, formData);
-        
+
         if (error) {
           console.log(field.name + " " + error)
           newErrors[field.name] = error;
@@ -229,7 +255,7 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
 
     if (validateForm()) {
       console.log("Form is valid! Sending to API...", formData);
-      if (isSignup) { 
+      if (isSignup) {
         try {
           await register(formData.first_name, formData.last_name, formData.email, formData.username, formData.password);
           router.push("/head-counting/live-view");
@@ -304,21 +330,21 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
                 {isSignup ? "Create an account" : isForgotPassword ? "Reset Password" : "Welcome back"}
               </h1>
               <p className="mt-5 text-xl text-white/88">
-                {isSignup 
-                  ? "Already have an account?" 
-                  : isForgotPassword 
-                  ? "Remember your password?" 
-                  : "Need an account?"
+                {isSignup
+                  ? "Already have an account?"
+                  : isForgotPassword
+                    ? "Remember your password?"
+                    : "Need an account?"
                 }{" "}
                 <Link
                   href={isSignup ? "/login" : isForgotPassword ? "/login" : "/signup"}
                   className="text-sky-300 underline underline-offset-4 transition hover:text-sky-200"
                 >
-                  {isSignup 
-                    ? "Log in" 
-                    : isForgotPassword 
-                    ? "Log in" 
-                    : "Sign up"
+                  {isSignup
+                    ? "Log in"
+                    : isForgotPassword
+                      ? "Log in"
+                      : "Sign up"
                   }
                 </Link>
               </p>
@@ -337,28 +363,45 @@ export default function AuthShowcase({ variant }: AuthShowcaseProps) {
 
               <form className="mt-10 space-y-6" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {fields.map((field) => (
-                    <label key={field.name} className={field.fullWidth ? "col-span-2" : "col-span-1"}>
-                      <span className="sr-only">{field.label}</span>
-                      <div className="flex h-13 items-center rounded-md border border-emerald-950/40 bg-[#0f4b2b]/80 px-4 text-white/65 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition focus-within:border-emerald-300/60 focus-within:text-white">
-                        <input
-                          name={field.name}
-                          type={field.type}
-                          placeholder={field.label}
-                          className="w-full bg-transparent text-lg outline-none placeholder:text-white/28"
-                          value={formData[field.name] || ""}
-                          onChange={handleChange}
-                          required={field.required}
-                        />
-                        {field.hasIcon ? <span className="ml-3 text-white/28"><EyeIcon /></span> : null}
-                      </div>
-                      {errors[field.name] && (
-                        <span style={{ color: 'red', fontSize: '12px' }}>
-                          {errors[field.name]}
-                        </span>
-                      )}
-                    </label>
-                  ))}
+                  {fields.map((field) => {
+                    const isPasswordField = field.type === "password";
+                    const hasValue = !!(formData[field.name] && formData[field.name].length > 0);
+                    const isVisible = showPassword[field.name] ?? false;
+                    const inputType = isPasswordField && isVisible ? "text" : field.type;
+
+                    return (
+                      <label key={field.name} className={field.fullWidth ? "col-span-2" : "col-span-1"}>
+                        <span className="sr-only">{field.label}</span>
+                        <div className="flex h-13 items-center rounded-md border border-emerald-950/40 bg-[#0f4b2b]/80 px-4 text-white/65 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition focus-within:border-emerald-300/60 focus-within:text-white">
+                          <input
+                            name={field.name}
+                            type={inputType}
+                            placeholder={field.label}
+                            className={`w-full bg-transparent text-lg outline-none placeholder:text-white/28 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden [&::-webkit-credentials-auto-fill-button]:hidden`}
+                            value={formData[field.name] || ""}
+                            onChange={handleChange}
+                            required={field.required}
+                            autoComplete={isPasswordField ? (field.name === "confirm_password" ? "new-password" : field.name === "password" && isSignup ? "new-password" : "current-password") : undefined}
+                          />
+                          {field.hasIcon && hasValue ? (
+                            <button
+                              type="button"
+                              onClick={() => toggleShowPassword(field.name)}
+                              className="ml-3 flex-shrink-0 text-white/55 transition hover:text-white focus:outline-none"
+                              aria-label={isVisible ? "Hide password" : "Show password"}
+                            >
+                              {isVisible ? <EyeOffIcon /> : <EyeOpenIcon />}
+                            </button>
+                          ) : null}
+                        </div>
+                        {errors[field.name] && (
+                          <span style={{ color: 'red', fontSize: '12px' }}>
+                            {errors[field.name]}
+                          </span>
+                        )}
+                      </label>
+                    );
+                  })}
                 </div>
 
                 {isSignup ? (

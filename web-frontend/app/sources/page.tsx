@@ -15,6 +15,7 @@ export default function SourcesPage() {
   const [sources, setSources] = useState<SourceItem[]>(initialSources);
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [name, setName] = useState("");
   const [type, setType] = useState<SourceType>("CCTV");
   const [url, setUrl] = useState("");
@@ -50,6 +51,15 @@ export default function SourcesPage() {
     setName("");
     setType("CCTV");
     setUrl("");
+    setEditingId(null);
+  }
+
+  function handleEditClick(source: SourceItem) {
+    setEditingId(source.id);
+    setName(source.name);
+    setType(source.type);
+    setUrl(source.url);
+    setIsModalOpen(true);
   }
 
   function handleDeleteClick(id: number, sourceName: string) {
@@ -66,20 +76,31 @@ export default function SourcesPage() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const nextId = sources.length ? Math.max(...sources.map((item) => item.id)) + 1 : 1;
-
-    setSources((currentSources) => [
-      ...currentSources,
-      {
-        id: nextId,
-        name: name.trim(),
-        type,
-        url: url.trim(),
-        frameRate: type === "File" ? "25 FPS" : "30 FPS",
-        resolution: type === "YouTube" ? "1280x720" : "1920x1080",
-        status: "Active",
-      },
-    ]);
+    if (editingId !== null) {
+      // Edit mode: update existing source
+      setSources((currentSources) =>
+        currentSources.map((source) =>
+          source.id === editingId
+            ? { ...source, name: name.trim(), type, url: url.trim() }
+            : source
+        )
+      );
+    } else {
+      // Add mode: create new source
+      const nextId = sources.length ? Math.max(...sources.map((item) => item.id)) + 1 : 1;
+      setSources((currentSources) => [
+        ...currentSources,
+        {
+          id: nextId,
+          name: name.trim(),
+          type,
+          url: url.trim(),
+          frameRate: "30 FPS",
+          resolution: "1920x1080",
+          status: "Active",
+        },
+      ]);
+    }
 
     setIsModalOpen(false);
     resetForm();
@@ -153,7 +174,11 @@ export default function SourcesPage() {
                           >
                             View
                           </Link>
-                          <button type="button" className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10">
+                          <button
+                            type="button"
+                            onClick={() => handleEditClick(source)}
+                            className="rounded border border-white/30 px-2 py-1 text-white/80 hover:bg-white/10"
+                          >
                             Edit
                           </button>
                           <button
@@ -176,7 +201,7 @@ export default function SourcesPage() {
       {isModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-lg rounded-sm border border-[#2f8e4c]/60 bg-[#0f4b2b] p-5 shadow-[0_18px_42px_rgba(0,0,0,0.5)]">
-            <h2 className="text-xl font-semibold text-white/95">Add Source</h2>
+            <h2 className="text-xl font-semibold text-white/95">{editingId !== null ? "Edit Source" : "Add Source"}</h2>
 
             <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
               <label className="block text-sm text-white/85">
@@ -199,19 +224,20 @@ export default function SourcesPage() {
                   className="mt-1 h-10 w-full rounded-sm border border-white/30 bg-[#0f4b2b]/60 px-3 text-white outline-none focus:border-[#e2c15d] focus:bg-[#0f4b2b]/80"
                 >
                   <option value="CCTV">CCTV</option>
-                  <option value="YouTube">YouTube</option>
-                  <option value="File">File</option>
+                  {/* YouTube dan File dinonaktifkan sementara, hanya RTSP yang didukung */}
+                  {/* <option value="YouTube">YouTube</option> */}
+                  {/* <option value="File">File</option> */}
                 </select>
               </label>
 
               <label className="block text-sm text-white/85">
-                URL / Path
+                RTSP URL
                 <input
                   required
                   type="text"
                   value={url}
                   onChange={(event) => setUrl(event.target.value)}
-                  placeholder="rtsp://... / https://... / C:/video.mp4"
+                  placeholder="rtsp://username:password@192.168.x.x:554/stream"
                   className="mt-1 h-10 w-full rounded-sm border border-white/30 bg-[#0f4b2b]/60 px-3 text-white placeholder:text-white/40 outline-none focus:border-[#e2c15d] focus:bg-[#0f4b2b]/80"
                 />
               </label>
@@ -231,7 +257,7 @@ export default function SourcesPage() {
                   type="submit"
                   className="h-10 rounded-sm border border-[#e2c15d]/70 bg-[#e2c15d]/25 px-4 text-sm font-medium text-white transition hover:bg-[#e2c15d]/40"
                 >
-                  Save Source
+                  {editingId !== null ? "Save Changes" : "Save Source"}
                 </button>
               </div>
             </form>

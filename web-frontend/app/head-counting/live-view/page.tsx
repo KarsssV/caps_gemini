@@ -109,7 +109,7 @@ export default function LiveViewPage() {
             <span className="text-sm text-white/80">Source</span>
             <select
               value={selectedSourceId}
-              onChange={(event) => setSelectedSourceId(event.target.value)}
+              onChange={(event) => setSelectedSourceId(parseInt(event.target.value, 10))}
               className="h-10 flex-1 rounded-sm border border-white/30 bg-[#0f4b2b]/60 px-3 text-sm text-white outline-none"
             >
               {hasMatches ? (
@@ -156,7 +156,7 @@ export default function LiveViewPage() {
 
             <div className="absolute left-4 top-4 rounded-sm border border-white/10 bg-black/35 px-3 py-2 text-xs text-white shadow-sm backdrop-blur-sm">
               <div className="grid grid-cols-[auto_auto] gap-x-6 gap-y-1">
-                <span>Frame : XXX</span>
+                <span>Timestamp : YYYY-MM-DD HH:MM:SS</span>
                 <span>fps : XX</span>
                 <span className="col-span-2">Live Count : XXX</span>
               </div>
