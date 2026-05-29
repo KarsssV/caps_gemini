@@ -94,19 +94,18 @@ func main() {
 		}
 
 		headCountLogApi := Api.Group("/logs")
-		headCountLogApi.Use(auth.AuthMiddleware())
 		{
 			headCountLogApi.POST("", headCountLogHandler.HandleAdd)
 			// headCountLogApi.GET("/:sourceName", headCountLogHandler.HandleRequestBySource)
 		}
 
 		snapshotsApi := Api.Group("/snapshots")
+		snapshotsApi.POST("", snapshotsHandler.HandleAdd)
 		snapshotsApi.Use(auth.AuthMiddleware())
 		{
-			snapshotsApi.POST("", snapshotsHandler.HandleAdd)
 			snapshotsApi.GET("", snapshotsHandler.HandleRequest)
 			// snapshotsApi.GET("/:sourceId/:snapshotId", snapshotsHandler.HandleRequestById)
-			snapshotsApi.DELETE("/:sourceId/:snapshotId", snapshotsHandler.HandleDeleteById)
+			// snapshotsApi.DELETE("/:sourceId/:snapshotId", snapshotsHandler.HandleDeleteById)
 		}
 
 		// auditLogApi := Api.Group("/crudlogs")

@@ -366,6 +366,7 @@ export default function SourcesPage() {
                   type="submit"
                   className="h-10 rounded-sm border border-[#e2c15d]/70 bg-[#e2c15d]/25 px-4 text-sm font-medium text-white transition hover:bg-[#e2c15d]/40"
                 >
+                  Submit
                 </button>
               </div>
             </form>
