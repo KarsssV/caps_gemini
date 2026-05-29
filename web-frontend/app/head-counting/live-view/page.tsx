@@ -39,7 +39,7 @@ export default function LiveViewPage() {
   
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
+    const socket = new WebSocket(`/ws`);
 
     socket.onopen = () => {
       setStatus('Open');
