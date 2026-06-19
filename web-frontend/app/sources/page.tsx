@@ -332,7 +332,7 @@ export default function SourcesPage() {
                   onChange={(event) => setType(event.target.value as SourceType)}
                   className="mt-1 h-10 w-full rounded-sm border border-white/30 bg-[#0f4b2b]/60 px-3 text-white outline-none focus:border-[#e2c15d] focus:bg-[#0f4b2b]/80"
                 >
-                  <option value="RSTP">RSTP</option>
+                  <option value="RTSP">RTSP</option>
                   {/* YouTube dan File dinonaktifkan sementara, hanya RTSP yang didukung */}
                   {/* <option value="YouTube">YouTube</option> */}
                   {/* <option value="File">File</option> */}

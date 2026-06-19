@@ -8,7 +8,7 @@ class Config:
     DISPLAY_WIDTH = 1280
     DISPLAY_HEIGHT = 720
 
-    MODEL_PATH = os.path.join(PROJECT_ROOT, "v4.onnx")
+    MODEL_PATH = os.path.join(PROJECT_ROOT, "v6_augconfig.onnx")
     TARGET_CLASS_IDS = [1]
     INFERENCE_SIZE = (512, 512) # for v3.onnx model
     CONFIDENCE_THRESHOLD = 0.5

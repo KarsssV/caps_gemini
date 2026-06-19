@@ -37,7 +37,7 @@ func main() {
 	queries := db.New(pool)
 	authService := auth.NewService(queries)
 	SourcesService := sources.NewService(queries, pool)
-	headCountLogService := headCountLog.NewService(queries)
+	headCountLogService := headCountLog.NewService(queries, pool)
 	snapshotsService := snapshots.NewService(queries)
 	// auditLogService := auditLog.NewService(queries)
 
@@ -96,6 +96,8 @@ func main() {
 		headCountLogApi := Api.Group("/logs")
 		{
 			headCountLogApi.POST("", headCountLogHandler.HandleAdd)
+			headCountLogApi.GET("", headCountLogHandler.HandleRequestAll)
+			headCountLogApi.GET("/stats", headCountLogHandler.HandleRequestStats)
 			// headCountLogApi.GET("/:sourceName", headCountLogHandler.HandleRequestBySource)
 		}
 

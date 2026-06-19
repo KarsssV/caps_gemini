@@ -15,6 +15,7 @@ type AppShellProps = {
 };
 
 const navItems = [
+  { href: "/dashboard", label: "Dashboard", icon: "/window.svg" },
   { href: "/sources", label: "Sources", icon: "/globe.svg" },
   { href: "/head-counting", label: "Head Counting Data", icon: "/people.svg" },
   { href: "/head-counting/live-view", label: "Live View", icon: "/window.svg" },

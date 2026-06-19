@@ -37,6 +37,33 @@ func (h *Handler) HandleAdd(c *gin.Context) {
 	c.JSON(http.StatusCreated, headCountLog)
 }
 
+// HandleRequestAll handles GET /api/logs with optional ?source= and ?limit= query params
+func (h *Handler) HandleRequestAll(c *gin.Context) {
+	sourceName := c.Query("source")
+	limitStr := c.DefaultQuery("limit", "5000")
+
+	logs, err := h.svc.RequestAll(c.Request.Context(), sourceName, limitStr)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"logs": logs})
+}
+
+// HandleRequestStats handles GET /api/logs/stats — aggregate statistics for dashboard
+func (h *Handler) HandleRequestStats(c *gin.Context) {
+	sourceName := c.Query("source")
+
+	stats, err := h.svc.RequestStats(c.Request.Context(), sourceName)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, stats)
+}
+
 func (h *Handler) HandleRequestBySource(c *gin.Context) {
 	sourceName := c.Param("sourceName")
 	if sourceName == "" {

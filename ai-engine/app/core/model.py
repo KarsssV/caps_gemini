@@ -1,3 +1,36 @@
+import os
+import sys
+
+# Workaround for Python 3.8+ on Windows to find pip-installed CUDA/cuDNN DLLs
+# Uses sys.prefix to reliably target the active venv's site-packages
+if sys.platform == "win32":
+    try:
+        candidate_roots = []
+
+        # Primary: use sys.prefix — always points to the active venv
+        venv_site = os.path.join(sys.prefix, "Lib", "site-packages")
+        if os.path.exists(venv_site):
+            candidate_roots.append(venv_site)
+
+        # Fallback: also check any system site-packages
+        try:
+            import site
+            candidate_roots.extend(site.getsitepackages())
+        except Exception:
+            pass
+
+        for root in candidate_roots:
+            nvidia_path = os.path.join(root, "nvidia")
+            if os.path.exists(nvidia_path):
+                for dirpath, dirnames, filenames in os.walk(nvidia_path):
+                    if os.path.basename(dirpath) == "bin":
+                        try:
+                            os.add_dll_directory(dirpath)
+                        except Exception:
+                            pass
+    except Exception:
+        pass
+
 import onnxruntime as ort
 import numpy as np
 import cv2
